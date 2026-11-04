@@ -4,20 +4,18 @@ import Link from "next/link"
 import {
   ArrowRight,
   ArrowUpRight,
-  BadgeCheck,
   CalendarDays,
   Camera,
-  Headphones,
   Lightbulb,
   Play,
   Plus,
   ShieldCheck,
   Users,
-  Video,
 } from "lucide-react"
 
 import { HeroCarousel } from "@/components/home/hero-carousel"
 import { BrandLogo } from "@/components/layout/brand-logo"
+import FeatursSection from "@/components/featurs/page"
 
 export const metadata: Metadata = {
   title: "Find your space",
@@ -111,28 +109,10 @@ const howItWorksSteps = [
   },
 ]
 
-const confidenceFeatures = [
-  {
-    icon: ShieldCheck,
-    title: "Liability Protection",
-    description:
-      "Protection-focused booking policies for creators and hosts.",
-  },
-  {
-    icon: BadgeCheck,
-    title: "Verified Profiles",
-    description: "Connect with trusted creators and studio hosts.",
-  },
-  {
-    icon: Video,
-    title: "Equipment Safety",
-    description: "Clear studio guidelines help protect valuable equipment.",
-  },
-  {
-    icon: Headphones,
-    title: "24/7 Host Support",
-    description: "Get assistance whenever you need help with your booking.",
-  },
+const aboutStats = [
+  { value: "2,400+", label: "Creators finding their space" },
+  { value: "350+", label: "Spaces ready to book" },
+  { value: "5", label: "Studio types on one platform" },
 ]
 
 const footerColumns = [
@@ -250,7 +230,7 @@ export default function Home() {
         </section>
 
         <section
-          id="about"
+          id="who-its-for"
           className="scroll-mt-20 bg-muted text-foreground lg:scroll-mt-24"
         >
           <div className="mx-auto grid w-full max-w-7xl gap-6 px-6 py-10 sm:grid-cols-2 lg:grid-cols-[1.2fr_repeat(4,1fr)] lg:items-center lg:px-12">
@@ -263,6 +243,11 @@ export default function Home() {
               </p>
             ))}
           </div>
+        </section>
+        <section
+        id="featers">
+          <FeatursSection/>
+
         </section>
 
         <section
@@ -322,6 +307,61 @@ export default function Home() {
           </div>
         </section>
 
+        <section
+          id="how-it-works"
+          className="scroll-mt-20 bg-callout text-callout-foreground lg:scroll-mt-24"
+        >
+          <div className="mx-auto w-full max-w-7xl px-6 py-20 lg:px-12 lg:py-28">
+            <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
+              <div>
+                <p className="flex items-center gap-2 text-[10px] font-semibold tracking-[0.22em] uppercase opacity-70">
+                  <span className="size-1.5 rounded-full bg-brand" />
+                  Simple by design
+                </p>
+
+                <h2 className="mt-6 font-serif text-5xl leading-[0.98] tracking-[-0.02em] sm:text-6xl">
+                  Less planning.
+                  <br />
+                  <span className="text-highlight italic">More making.</span>
+                </h2>
+              </div>
+
+              <p className="max-w-sm text-sm leading-6 opacity-70 lg:justify-self-end lg:pb-1">
+                A smoother way to get from the first spark to the final frame.
+              </p>
+            </div>
+
+            <div className="mt-14 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:mt-20 lg:grid-cols-4">
+              {howItWorksSteps.map((step) => {
+                const Icon = step.icon
+
+                return (
+                  <article key={step.number}>
+                    <div className="flex items-center justify-between border-t border-callout-foreground/20 pt-4">
+                      <span className="text-[11px] font-medium tabular-nums opacity-70">
+                        {step.number}
+                      </span>
+                      <Icon
+                        aria-hidden
+                        strokeWidth={1.4}
+                        className="size-5 text-highlight"
+                      />
+                    </div>
+
+                    <h3 className="mt-7 text-base font-semibold">
+                      {step.title}
+                    </h3>
+                    <p className="mt-2 text-sm leading-6 opacity-65">
+                      {step.description}
+                    </p>
+                  </article>
+                )
+              })}
+            </div>
+          </div>
+        </section>
+
+        
         <section
           id="studio-promise"
           className="scroll-mt-20 bg-muted text-foreground lg:scroll-mt-24"
@@ -394,105 +434,89 @@ export default function Home() {
           </div>
         </section>
 
-        <section
-          id="how-it-works"
-          className="scroll-mt-20 bg-callout text-callout-foreground lg:scroll-mt-24"
-        >
-          <div className="mx-auto w-full max-w-7xl px-6 py-20 lg:px-12 lg:py-28">
-            <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
-              <div>
-                <p className="flex items-center gap-2 text-[10px] font-semibold tracking-[0.22em] uppercase opacity-70">
-                  <span className="size-1.5 rounded-full bg-brand" />
-                  Simple by design
-                </p>
-
-                <h2 className="mt-6 font-serif text-5xl leading-[0.98] tracking-[-0.02em] sm:text-6xl">
-                  Less planning.
-                  <br />
-                  <span className="text-highlight italic">More making.</span>
-                </h2>
-              </div>
-
-              <p className="max-w-sm text-sm leading-6 opacity-70 lg:justify-self-end lg:pb-1">
-                A smoother way to get from the first spark to the final frame.
-              </p>
-            </div>
-
-            <div className="mt-14 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:mt-20 lg:grid-cols-4">
-              {howItWorksSteps.map((step) => {
-                const Icon = step.icon
-
-                return (
-                  <article key={step.number}>
-                    <div className="flex items-center justify-between border-t border-callout-foreground/20 pt-4">
-                      <span className="text-[11px] font-medium tabular-nums opacity-70">
-                        {step.number}
-                      </span>
-                      <Icon
-                        aria-hidden
-                        strokeWidth={1.4}
-                        className="size-5 text-highlight"
-                      />
-                    </div>
-
-                    <h3 className="mt-7 text-base font-semibold">
-                      {step.title}
-                    </h3>
-                    <p className="mt-2 text-sm leading-6 opacity-65">
-                      {step.description}
-                    </p>
-                  </article>
-                )
-              })}
-            </div>
-          </div>
-        </section>
 
         <section
-          id="create-with-confidence"
+          id="about"
           className="scroll-mt-20 bg-background text-foreground lg:scroll-mt-24"
         >
           <div className="mx-auto w-full max-w-7xl px-6 py-20 lg:px-12 lg:py-28">
-            <div className="max-w-2xl">
-              <span className="block h-px w-12 bg-gold" />
+            <div className="grid gap-14 lg:grid-cols-[1fr_0.9fr] lg:items-center lg:gap-20">
+              <div>
+                <p className="flex items-center gap-2 text-[10px] font-semibold tracking-[0.22em] text-muted-foreground uppercase">
+                  <span className="size-1.5 rounded-full bg-brand" />
+                  About The Rising Star
+                </p>
 
-              <h2 className="mt-6 font-serif text-5xl leading-[0.98] tracking-[-0.02em] text-balance sm:text-6xl">
-                Create With Confidence
-              </h2>
+                <h2 className="mt-6 font-serif text-5xl leading-[0.98] tracking-[-0.02em] sm:text-6xl">
+                  We bring the room.
+                  <br />
+                  You bring the{" "}
+                  <span className="text-highlight italic">idea.</span>
+                </h2>
 
-              <p className="mt-5 max-w-xl text-sm leading-6 text-muted-foreground">
-                Your creativity deserves a safe, reliable, and supportive space.
-              </p>
+                <div className="mt-7 max-w-xl space-y-4 text-sm leading-6 text-muted-foreground">
+                  <p>
+                    The Rising Star is a marketplace for creative spaces and
+                    the people who bring them to life. From sunlit photo
+                    studios and full production stages to podcast lounges, music
+                    suites and workshops, we connect good ideas with the rooms
+                    that help them happen.
+                  </p>
+                  <p>
+                    Made for independent creators, production teams, agencies
+                    and artists, the platform keeps booking simple: discover a
+                    space, choose your hours and reserve with clear rates. For
+                    hosts, it&apos;s a thoughtful way to share a space with the
+                    people who will make something great in it.
+                  </p>
+                </div>
+
+                <Link
+                  href="#explore-studios"
+                  className="group mt-8 inline-flex h-12 items-center gap-2 rounded-md bg-primary px-6 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+                >
+                  Explore the spaces
+                  <ArrowUpRight className="size-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="relative aspect-[3/4] overflow-hidden bg-secondary">
+                  <Image
+                    src="/assets/hero-2.jpg"
+                    alt="Open-plan studio with desks and plenty of natural light"
+                    fill
+                    sizes="(max-width: 1024px) 50vw, 22vw"
+                    className="object-cover"
+                  />
+                </div>
+                <div className="relative mt-10 aspect-[3/4] overflow-hidden bg-secondary">
+                  <Image
+                    src="/assets/hero-3.jpg"
+                    alt="Warm lounge and meeting space for creative teams"
+                    fill
+                    sizes="(max-width: 1024px) 50vw, 22vw"
+                    className="object-cover"
+                  />
+                </div>
+              </div>
             </div>
 
-            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {confidenceFeatures.map((feature) => {
-                const Icon = feature.icon
-
-                return (
-                  <article
-                    key={feature.title}
-                    className="group rounded-lg border border-border bg-card p-6 transition duration-300 hover:-translate-y-1 hover:border-gold/40 hover:bg-accent/60"
-                  >
-                    <span className="flex size-11 items-center justify-center rounded-full border border-gold/25 bg-gold/10 text-gold transition-colors duration-300 group-hover:bg-gold group-hover:text-gold-foreground">
-                      <Icon aria-hidden strokeWidth={1.6} className="size-5" />
-                    </span>
-
-                    <h3 className="mt-6 text-base font-semibold">
-                      {feature.title}
-                    </h3>
-                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                      {feature.description}
-                    </p>
-                  </article>
-                )
-              })}
-            </div>
-
-            <p className="mt-8 max-w-xl text-[11px] leading-5 text-muted-foreground">
-              Platform policies and planned support. Availability may vary by
-              space and booking.
-            </p>
+            <dl className="mt-16 grid gap-8 border-t border-border pt-10 sm:grid-cols-3 sm:gap-0">
+              {aboutStats.map((stat) => (
+                <div
+                  key={stat.label}
+                  className="sm:border-l sm:border-border sm:pl-8 sm:first:border-l-0 sm:first:pl-0"
+                >
+                  <dt className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
+                    {stat.label}
+                  </dt>
+                  <dd className="mt-2 font-serif text-4xl leading-none">
+                    {stat.value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
           </div>
         </section>
 
