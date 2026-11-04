@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+  import { ToastContainer, } from 'react-toastify';
 import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google"
 
 import { SiteHeader } from "@/components/layout/site-header"
@@ -48,6 +49,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           <SiteHeader />
           {children}
+          <ToastContainer />
         </ThemeProvider>
       </body>
     </html>
