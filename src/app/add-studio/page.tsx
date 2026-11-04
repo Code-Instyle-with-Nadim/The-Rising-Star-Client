@@ -10,11 +10,12 @@ import {
   LayoutGrid,
   MapPin,
   ShieldCheck,
-  Sparkles,
+  Upload,
   Users,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -27,12 +28,37 @@ const categories = [
   "Workshop",
 ]
 
+const amenities = [
+  "Natural light",
+  "Cyclorama wall",
+  "Soundproofing",
+  "Lighting kit",
+  "Green screen",
+  "Makeup station",
+  "Wi-Fi",
+  "Parking",
+  "Air conditioning",
+  "Changing room",
+]
+
 const AddStudioPage = () => {
-  const onSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
+  const onSubmit =async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const data=Object.fromEntries(formData.entries());
-    
+    const res = await fetch("http://localhost:5000/studio",{
+      method: "POST",
+     headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify(data),
+  
+
+    });
+    const result = res.json()
+
+    console.log(result)
+  }
   return (
     <main className="grid flex-1 lg:grid-cols-2">
       <div className="hidden lg:block">
@@ -79,13 +105,10 @@ const AddStudioPage = () => {
             Tell creators about your studio and start welcoming bookings.
           </p>
 
-          <form
-            onSubmit={(event) => event.preventDefault()}
-            className="mt-8 space-y-4"
-          >
+          <form onSubmit={onSubmit} className="mt-8 space-y-4">
             <div className="space-y-2">
               <Label htmlFor="title" className="text-xs font-semibold">
-                Studio name
+                Studio title
               </Label>
               <div className="relative">
                 <Building2 className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -93,7 +116,7 @@ const AddStudioPage = () => {
                   id="title"
                   name="title"
                   type="text"
-                  placeholder="The Glasshouse Studio"
+                  placeholder="The Daylight Loft"
                   required
                   className="h-11 rounded-md bg-card pl-10"
                 />
@@ -110,13 +133,10 @@ const AddStudioPage = () => {
                   <select
                     id="category"
                     name="category"
-                    defaultValue=""
+                    defaultValue="Photo Studio"
                     required
                     className="h-11 w-full appearance-none rounded-md border border-input bg-card py-1 pr-9 pl-10 text-base outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm"
                   >
-                    <option value="" disabled>
-                      Select category
-                    </option>
                     {categories.map((category) => (
                       <option key={category} value={category}>
                         {category}
@@ -129,7 +149,7 @@ const AddStudioPage = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="maxCapacity" className="text-xs font-semibold">
-                  Max capacity
+                  Maximum capacity
                 </Label>
                 <div className="relative">
                   <Users className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -138,7 +158,7 @@ const AddStudioPage = () => {
                     name="maxCapacity"
                     type="number"
                     min={1}
-                    placeholder="12"
+                    placeholder="8"
                     required
                     className="h-11 rounded-md bg-card pl-10"
                   />
@@ -146,27 +166,10 @@ const AddStudioPage = () => {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="location" className="text-xs font-semibold">
-                Location
-              </Label>
-              <div className="relative">
-                <MapPin className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  id="location"
-                  name="location"
-                  type="text"
-                  placeholder="Gulshan, Dhaka"
-                  required
-                  className="h-11 rounded-md bg-card pl-10"
-                />
-              </div>
-            </div>
-
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="hourlyRate" className="text-xs font-semibold">
-                  Hourly rate
+                  Hourly rate ($)
                 </Label>
                 <div className="relative">
                   <Banknote className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -175,7 +178,7 @@ const AddStudioPage = () => {
                     name="hourlyRate"
                     type="number"
                     min={0}
-                    placeholder="45"
+                    placeholder="85"
                     required
                     className="h-11 rounded-md bg-card pl-10"
                   />
@@ -187,7 +190,7 @@ const AddStudioPage = () => {
                   htmlFor="securityDeposit"
                   className="text-xs font-semibold"
                 >
-                  Security deposit
+                  Security deposit ($)
                 </Label>
                 <div className="relative">
                   <ShieldCheck className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -196,7 +199,7 @@ const AddStudioPage = () => {
                     name="securityDeposit"
                     type="number"
                     min={0}
-                    placeholder="100"
+                    placeholder="0"
                     className="h-11 rounded-md bg-card pl-10"
                   />
                 </div>
@@ -204,16 +207,16 @@ const AddStudioPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="imageUrl" className="text-xs font-semibold">
-                Photo URL
+              <Label htmlFor="location" className="text-xs font-semibold">
+                Location / address
               </Label>
               <div className="relative">
-                <ImageIcon className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
+                <MapPin className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  id="imageUrl"
-                  name="imageUrl"
-                  type="url"
-                  placeholder="https://..."
+                  id="location"
+                  name="location"
+                  type="text"
+                  placeholder="Brooklyn, New York"
                   required
                   className="h-11 rounded-md bg-card pl-10"
                 />
@@ -221,37 +224,97 @@ const AddStudioPage = () => {
             </div>
 
             <div className="space-y-2">
-              <div className="flex items-center gap-1.5">
-                <Label htmlFor="amenities" className="text-xs font-semibold">
-                  Amenities
-                </Label>
-                <span className="text-[10px] text-muted-foreground">
-                  (comma separated)
-                </span>
-              </div>
+              <Label htmlFor="imageUrl" className="text-xs font-semibold">
+                Cover image URL
+              </Label>
               <div className="relative">
-                <Sparkles className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
+                <ImageIcon className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  id="amenities"
-                  name="amenities"
-                  type="text"
-                  placeholder="Wi-Fi, lighting, parking"
+                  id="imageUrl"
+                  name="imageUrl"
+                  type="url"
+                  placeholder="Upload an image or paste an image URL"
+                  required
                   className="h-11 rounded-md bg-card pl-10"
                 />
               </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                <a
+                  href="https://imgbb.com/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 text-[11px] font-medium text-highlight underline-offset-4 hover:underline"
+                >
+                  <Upload className="size-3" />
+                  Or upload directly to ImgBB
+                </a>
+              </div>
+
+              <Input
+                id="coverFile"
+                name="coverFile"
+                type="file"
+                accept="image/*"
+                aria-label="Upload cover image"
+                className="h-11 cursor-pointer rounded-md bg-card pt-2.5"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center gap-1.5">
+                <Label htmlFor="images" className="text-xs font-semibold">
+                  Gallery image URLs
+                </Label>
+                <span className="text-[10px] text-muted-foreground">
+                  (one URL per line)
+                </span>
+              </div>
+              <Textarea
+                id="images"
+                name="images"
+                placeholder={"https://...\nhttps://..."}
+                className="min-h-24 rounded-md bg-card font-mono text-xs leading-6"
+              />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="overview" className="text-xs font-semibold">
-                Overview
+                Detailed overview
               </Label>
               <Textarea
                 id="overview"
                 name="overview"
-                placeholder="Describe the space, the light and what makes it special..."
+                placeholder="Describe the atmosphere, equipment and what makes your space unique."
                 required
-                className="min-h-24 rounded-md bg-card"
+                className="min-h-28 rounded-md bg-card"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs font-semibold">Amenities & equipment</Label>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {amenities.map((amenity) => {
+                  const id = `amenity-${amenity
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, "-")}`
+
+                  return (
+                    <Label
+                      key={amenity}
+                      htmlFor={id}
+                      className="cursor-pointer rounded-md border border-border bg-card px-3 py-2.5 text-xs font-normal hover:bg-muted/40"
+                    >
+                      <Checkbox
+                        id={id}
+                        name="amenities"
+                        value={amenity}
+                      />
+                      {amenity}
+                    </Label>
+                  )
+                })}
+              </div>
             </div>
 
             <Button

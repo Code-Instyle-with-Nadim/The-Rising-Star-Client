@@ -8,8 +8,32 @@ import { ArrowUpRight, ImageIcon, Lock, Mail, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { toast } from "react-toastify"
+import { useRouter } from "next/navigation"
+import { authClient } from "@/lib/auth-client"
 
 const SignUpPage = () => {
+  const router = useRouter()
+       const onSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        const data = Object.fromEntries(formData.entries())as {name:string,image:string, email:string,password:string}
+    const { data:resData, error } = await authClient.signUp.email({
+          ...data,
+        })
+        if(resData){
+          toast.success(`${resData.user.name}Successfully Done the Registation`)
+          router.push("/sign-in")
+          router.refresh()
+    
+        }
+        
+      };
+      const signInGoogle = async () => {
+  const data = await authClient.signIn.social({
+    provider: "google",
+  });
+};
   return (
     <main className="grid flex-1 lg:grid-cols-2">
       <div className="relative hidden min-h-[calc(100dvh-5rem)] overflow-hidden lg:block lg:min-h-[calc(100dvh-6rem)]">
@@ -55,7 +79,7 @@ const SignUpPage = () => {
           </p>
 
           <form
-            onSubmit={(event) => event.preventDefault()}
+            onSubmit={onSubmit}
             className="mt-8 space-y-4"
           >
             <div className="space-y-2">
@@ -107,7 +131,7 @@ const SignUpPage = () => {
                 <ImageIcon className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   id="photoUrl"
-                  name="photoUrl"
+                  name="image"
                   type="url"
                   placeholder="https://..."
                   className="h-11 rounded-md bg-card pl-10"
@@ -154,6 +178,7 @@ const SignUpPage = () => {
           </div>
 
           <Button
+          onClick={signInGoogle}
             type="button"
             variant="outline"
             className="h-11 w-full rounded-md border-border bg-transparent text-sm font-medium hover:bg-muted/60"

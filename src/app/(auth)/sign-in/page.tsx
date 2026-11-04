@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label"
 import { authClient } from "@/lib/auth-client"
 import { toast } from "react-toastify"
 import { useRouter } from "next/navigation"
+import { ArrowUpRight, ImageIcon, Lock, Mail, User } from "lucide-react"
+import Image from "next/image"
 
 const SignInPage = () => {
     const router = useRouter()
@@ -28,72 +30,108 @@ const SignInPage = () => {
       
     };
   return (
-    <main className="flex flex-1 items-center justify-center px-4 py-12 sm:px-6">
-      <div className="w-full max-w-md">
-        <div className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
-          <div className="text-center">
-            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1 text-[10px] font-semibold tracking-[0.18em] text-muted-foreground uppercase">
-              <span className="size-1.5 rounded-full bg-brand" />
-              Welcome back
-            </span>
+     <main className="grid flex-1 lg:grid-cols-2">
+      <div className="relative hidden min-h-[calc(100dvh-5rem)] overflow-hidden lg:block lg:min-h-[calc(100dvh-6rem)]">
+        <Image
+          src="/assets/hero-1.jpg"
+          alt="A light-filled studio hallway with glass partitions"
+          fill
+          priority
+          sizes="50vw"
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/15" />
 
-            <h1 className="mt-5 font-serif text-4xl leading-tight tracking-[-0.02em]">
-              Sign in to your <span className="text-highlight italic">account</span>
-            </h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Enter your details to continue to The Rising Star.
-            </p>
+        <div className="absolute inset-0 flex flex-col justify-end p-10 text-white xl:p-14">
+          <p className="text-[10px] font-semibold tracking-[0.25em] text-white/70 uppercase">
+            Studio Notes — 002
+          </p>
+          <h2 className="mt-5 max-w-xl font-serif text-5xl leading-[0.98] tracking-[-0.02em] xl:text-6xl">
+            Big things
+            <br />
+            happen in the
+            <br />
+            <span className="text-brand italic">right space.</span>
+          </h2>
+        </div>
+      </div>
+
+      <div className="flex justify-center bg-background px-4 py-12 sm:px-6 lg:px-10 lg:py-16">
+        <div className="w-full max-w-[27rem]">
+          <div className="flex items-center gap-2 text-[10px] font-semibold tracking-[0.22em] text-muted-foreground uppercase">
+            <span className="size-1.5 rounded-full bg-highlight" />
+            Join the creative community
           </div>
+
+          <h1 className="mt-6 font-serif text-5xl leading-[0.95] tracking-[-0.02em] sm:text-6xl">
+            Make yourself
+            <br />
+            <span className="text-highlight italic">at home.</span>
+          </h1>
+
+          <p className="mt-5 text-sm leading-6 text-muted-foreground">
+            Create an account and find your next creative space.
+          </p>
 
           <form
             onSubmit={onSubmit}
             className="mt-8 space-y-4"
           >
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="you@example.com"
-                autoComplete="email"
-                required
-                className="h-10"
-              />
-            </div>
+           
 
             <div className="space-y-2">
-              <div className="flex items-center justify-between gap-3">
-                <Label htmlFor="password">Password</Label>
-                <Link
-                  href="/forgot-password"
-                  className="text-xs font-medium text-highlight underline-offset-4 hover:underline"
-                >
-                  Forgot password?
-                </Link>
+              <Label htmlFor="email" className="text-xs font-semibold">
+                Email address
+              </Label>
+              <div className="relative">
+                <Mail className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                  required
+                  className="h-11 rounded-md bg-card pl-10"
+                />
               </div>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="Enter your password"
-                autoComplete="current-password"
-                required
-                className="h-10"
-              />
+            </div>
+
+       
+
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-xs font-semibold">
+                Password
+              </Label>
+              <div className="relative">
+                <Lock className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  placeholder="At least 6 characters"
+                  autoComplete="new-password"
+                  required
+                  className="h-11 rounded-md bg-card pl-10"
+                />
+              </div>
+              <p className="text-[11px] leading-4 text-muted-foreground">
+                Must include uppercase, lowercase and at least 6 characters.
+              </p>
             </div>
 
             <Button
               type="submit"
-              className="h-10 w-full rounded-lg bg-brand text-sm font-semibold text-brand-foreground hover:bg-brand/90"
+              className="h-11 w-full rounded-sm bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary/90"
             >
-              Login
+              Sign In
+              <ArrowUpRight className="size-4" />
             </Button>
           </form>
 
           <div className="my-6 flex items-center gap-3">
             <span className="h-px flex-1 bg-border" />
-            <span className="text-[10px] font-semibold tracking-[0.18em] text-muted-foreground uppercase">
+            <span className="text-[10px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
               Or continue with
             </span>
             <span className="h-px flex-1 bg-border" />
@@ -101,23 +139,26 @@ const SignInPage = () => {
 
           <Button
             type="button"
-            className="h-10 w-full rounded-lg bg-brand text-sm font-semibold text-brand-foreground hover:bg-brand/90"
-            variant="default"
+            variant="outline"
+            className="h-11 w-full rounded-md border-border bg-transparent text-sm font-medium hover:bg-muted/60"
           >
-            <Icon icon="devicon:google" />
-            Sign in with Google
+            <Icon icon="devicon:google" className="size-4" />
+            Sign up with Google
+            <span className="hidden text-[9px] font-normal text-muted-foreground/70 sm:inline">
+              OAuth credentials required
+            </span>
           </Button>
-        </div>
 
-        <p className="mt-6 text-center text-sm text-muted-foreground">
-          Don&apos;t have an account?{" "}
-          <Link
-            href="/sign-up"
-            className="font-semibold text-foreground underline-offset-4 hover:underline"
-          >
-            Register
-          </Link>
-        </p>
+          <p className="mt-8 text-center text-xs text-muted-foreground">
+            Already have an account?{" "}
+            <Link
+              href="/sign-in"
+              className="font-semibold text-foreground underline-offset-4 hover:underline"
+            >
+              Log in
+            </Link>
+          </p>
+        </div>
       </div>
     </main>
   )
