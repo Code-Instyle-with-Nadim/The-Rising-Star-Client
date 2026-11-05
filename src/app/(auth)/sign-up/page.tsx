@@ -34,6 +34,7 @@ const SignUpPage = () => {
     provider: "google",
   });
 };
+
   return (
     <main className="grid flex-1 lg:grid-cols-2">
       <div className="relative hidden min-h-[calc(100dvh-5rem)] overflow-hidden lg:block lg:min-h-[calc(100dvh-6rem)]">

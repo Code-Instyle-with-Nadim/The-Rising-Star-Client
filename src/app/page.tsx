@@ -16,6 +16,7 @@ import {
 import { HeroCarousel } from "@/components/home/hero-carousel"
 import { BrandLogo } from "@/components/layout/brand-logo"
 import FeatursSection from "@/components/featurs/page"
+import { getCategoryHref } from "@/lib/studios"
 
 export const metadata: Metadata = {
   title: "Find your space",
@@ -249,7 +250,7 @@ export default function Home() {
           <FeatursSection/>
 
         </section>
-
+            
         <section
           id="explore-studios"
           className="scroll-mt-20 bg-background text-foreground lg:scroll-mt-24"
@@ -277,35 +278,35 @@ export default function Home() {
 
             <div className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
               {categories.map((category) => (
-                <article
-                  key={category.name}
-                  className="flex min-h-[13.5rem] flex-col rounded border border-border bg-card p-5 text-card-foreground transition-colors hover:border-highlight/40 hover:bg-accent/50"
-                >
-                  <div className="flex items-start justify-between">
-                    <span
-                      aria-hidden
-                      className="size-11 rounded-full bg-foreground"
-                    />
-                    <ArrowUpRight
-                      aria-hidden
-                      className="size-4 text-muted-foreground"
-                    />
-                  </div>
+                <Link key={category.name} href={getCategoryHref(category.name)}>
+                  <article className="flex min-h-[13.5rem] flex-col rounded border border-border bg-card p-5 text-card-foreground transition-colors hover:border-highlight/40 hover:bg-accent/50">
+                    <div className="flex items-start justify-between">
+                      <span
+                        aria-hidden
+                        className="size-11 rounded-full bg-foreground"
+                      />
+                      <ArrowUpRight
+                        aria-hidden
+                        className="size-4 text-muted-foreground"
+                      />
+                    </div>
 
-                  <p className="mt-10 text-[10px] text-muted-foreground">
-                    {category.count} spaces
-                  </p>
-                  <h3 className="mt-1.5 text-lg font-semibold tracking-tight">
-                    {category.name}
-                  </h3>
-                  <p className="mt-2 rounded-[3px] bg-muted px-3 py-1.5 text-[11px] text-muted-foreground">
-                    {category.description}
-                  </p>
-                </article>
+                    <p className="mt-10 text-[10px] text-muted-foreground">
+                      {category.count} spaces
+                    </p>
+                    <h3 className="mt-1.5 text-lg font-semibold tracking-tight">
+                      {category.name}
+                    </h3>
+                    <p className="mt-2 rounded-[3px] bg-muted px-3 py-1.5 text-[11px] text-muted-foreground">
+                      {category.description}
+                    </p>
+                  </article>
+                </Link>
               ))}
             </div>
           </div>
         </section>
+       
 
         <section
           id="how-it-works"

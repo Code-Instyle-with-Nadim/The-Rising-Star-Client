@@ -29,6 +29,12 @@ const SignInPage = () => {
       }
       
     };
+          const signInGoogle = async () => {
+  const data = await authClient.signIn.social({
+    provider: "google",
+  });
+};
+
   return (
      <main className="grid flex-1 lg:grid-cols-2">
       <div className="relative hidden min-h-[calc(100dvh-5rem)] overflow-hidden lg:block lg:min-h-[calc(100dvh-6rem)]">
@@ -138,6 +144,7 @@ const SignInPage = () => {
           </div>
 
           <Button
+          onClick={signInGoogle}
             type="button"
             variant="outline"
             className="h-11 w-full rounded-md border-border bg-transparent text-sm font-medium hover:bg-muted/60"
