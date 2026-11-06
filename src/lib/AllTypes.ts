@@ -17,3 +17,7 @@ export interface StudioData {
     "createdAt": string,
   
 }
+
+export interface ParamsType {
+    id: string
+}

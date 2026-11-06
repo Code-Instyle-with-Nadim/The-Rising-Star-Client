@@ -1,5 +1,7 @@
 import type { StudioData } from "@/lib/AllTypes"
 
+const BACKEND_URL = process.env.BACKEND_URL ?? "http://localhost:5000"
+
 export const ALL_CATEGORIES_LABEL = "All spaces"
 
 export const STUDIO_CATEGORIES = [
@@ -16,7 +18,7 @@ export function getCategoryHref(category: string) {
 
 export async function getStudios(): Promise<StudioData[]> {
   try {
-    const response = await fetch("http://localhost:5000/studio", {
+    const response = await fetch(`${BACKEND_URL}/studio`, {
       cache: "no-store",
     })
 
@@ -29,5 +31,28 @@ export async function getStudios(): Promise<StudioData[]> {
     return Array.isArray(data) ? (data as StudioData[]) : []
   } catch {
     return []
+  }
+}
+
+export async function getStudio(id: string): Promise<StudioData | null> {
+  try {
+    const response = await fetch(
+      `${BACKEND_URL}/studio-space/${encodeURIComponent(id)}`,
+      { cache: "no-store" }
+    )
+
+    if (!response.ok) {
+      return null
+    }
+
+    const data: unknown = await response.json()
+
+    if (!data || typeof data !== "object" || Array.isArray(data)) {
+      return null
+    }
+
+    return data as StudioData
+  } catch {
+    return null
   }
 }

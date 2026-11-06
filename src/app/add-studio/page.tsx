@@ -10,11 +10,12 @@ import {
   LayoutGrid,
   MapPin,
   ShieldCheck,
-  Sparkles,
+  Upload,
   Users,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -27,21 +28,53 @@ const categories = [
   "Workshop",
 ]
 
-const AddStudioPage = () => {
-  const onSubmit =async (e: React.SyntheticEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const data=Object.fromEntries(formData.entries());
-    const res = await fetch("http://localhost:5000/studio",{
-      method: "POST",
-     headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify(data),
-  
+const amenities = [
+  "Natural light",
+  "Cyclorama wall",
+  "Soundproofing",
+  "Lighting kit",
+  "Green screen",
+  "Makeup station",
+  "Wi-Fi",
+  "Parking",
+  "Air conditioning",
+  "Changing room",
+]
 
-    });
-    const result = res.json()
+const AddStudioPage = () => {
+  const onSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+    e.preventDefault()
+
+    const formData = new FormData(e.currentTarget)
+    const imageUrl = String(formData.get("imageUrl") ?? "")
+    const galleryImages = String(formData.get("images") ?? "")
+      .split(/\r?\n/)
+      .map((url) => url.trim())
+      .filter(Boolean)
+
+    const data = {
+      title: formData.get("title"),
+      category: formData.get("category"),
+      maxCapacity: Number(formData.get("maxCapacity")),
+      location: formData.get("location"),
+      hourlyRate: Number(formData.get("hourlyRate")),
+      securityDeposit: Number(formData.get("securityDeposit") ?? 0),
+      imageUrl,
+      images: galleryImages.length > 0 ? galleryImages : [imageUrl],
+      amenities: formData.getAll("amenities"),
+      overview: formData.get("overview"),
+      rating: 0,
+      reviewCount: 0,
+    }
+
+    const res = await fetch("http://localhost:5000/studio", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    })
+    const result = await res.json()
 
     console.log(result)
   }
@@ -217,7 +250,7 @@ const AddStudioPage = () => {
 
             <div className="space-y-2">
               <Label htmlFor="imageUrl" className="text-xs font-semibold">
-                Photo URL
+                Cover image URL
               </Label>
               <div className="relative">
                 <ImageIcon className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -225,32 +258,40 @@ const AddStudioPage = () => {
                   id="imageUrl"
                   name="imageUrl"
                   type="url"
-                  placeholder="https://..."
+                  placeholder="Upload an image or paste an image URL"
                   required
                   className="h-11 rounded-md bg-card pl-10"
                 />
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                <a
+                  href="https://imgbb.com/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 text-[11px] font-medium text-highlight underline-offset-4 hover:underline"
+                >
+                  <Upload className="size-3" />
+                  Or upload directly to ImgBB
+                </a>
               </div>
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center gap-1.5">
-                <Label htmlFor="amenities" className="text-xs font-semibold">
-                  Amenities
+                <Label htmlFor="images" className="text-xs font-semibold">
+                  Gallery image URLs
                 </Label>
                 <span className="text-[10px] text-muted-foreground">
-                  (comma separated)
+                  (one URL per line)
                 </span>
               </div>
-              <div className="relative">
-                <Sparkles className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  id="amenities"
-                  name="amenities"
-                  type="text"
-                  placeholder="Wi-Fi, lighting, parking"
-                  className="h-11 rounded-md bg-card pl-10"
-                />
-              </div>
+              <Textarea
+                id="images"
+                name="images"
+                placeholder={"https://...\nhttps://..."}
+                className="min-h-24 rounded-md bg-card font-mono text-xs leading-6"
+              />
             </div>
 
             <div className="space-y-2">
@@ -264,6 +305,34 @@ const AddStudioPage = () => {
                 required
                 className="min-h-24 rounded-md bg-card"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs font-semibold">
+                Amenities & equipment
+              </Label>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {amenities.map((amenity) => {
+                  const id = `amenity-${amenity
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, "-")}`
+
+                  return (
+                    <Label
+                      key={amenity}
+                      htmlFor={id}
+                      className="cursor-pointer rounded-md border border-border bg-card px-3 py-2.5 text-xs font-normal hover:bg-muted/40"
+                    >
+                      <Checkbox
+                        id={id}
+                        name="amenities"
+                        value={amenity}
+                      />
+                      {amenity}
+                    </Label>
+                  )
+                })}
+              </div>
             </div>
 
             <Button

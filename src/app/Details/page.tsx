@@ -41,7 +41,7 @@ function StudioCard({ studio }: { studio: StudioData }) {
   const [isFavorite, setIsFavorite] = useState(false)
   const rating = Number(studio.rating ?? 0)
   const imageUrl = studio.imageUrl || "/assets/hero-1.jpg"
-  const detailsHref = `/studios/${studio._id}`
+  const detailsHref = `/Details/${studio._id}`
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-xl border border-border/70 bg-card/60 text-card-foreground shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-highlight/40 hover:shadow-xl">
