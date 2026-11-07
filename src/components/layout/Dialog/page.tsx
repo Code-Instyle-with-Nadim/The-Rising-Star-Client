@@ -85,7 +85,7 @@ export default function DialogPage({ user }: UserDropdownProps) {
             Dashboard
           </DropdownMenuItem>
 
-          <DropdownMenuItem onClick={() => router.push("/add-studio")}>
+          <DropdownMenuItem onClick={() => router.push("/add-studio?new=1")}>
             <Plus />
             Add New Studio
           </DropdownMenuItem>

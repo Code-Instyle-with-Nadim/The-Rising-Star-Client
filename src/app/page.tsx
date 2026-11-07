@@ -15,7 +15,7 @@ import {
 
 import { HeroCarousel } from "@/components/home/hero-carousel"
 import { BrandLogo } from "@/components/layout/brand-logo"
-import FeatursSection from "@/components/featurs/page"
+import FeatursSection from "@/app/featurs/page"
 import { getCategoryHref } from "@/lib/studios"
 
 export const metadata: Metadata = {

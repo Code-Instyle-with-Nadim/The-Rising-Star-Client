@@ -5,7 +5,7 @@ import { ArrowUpRight, MapPin, Star } from "lucide-react";
 import type { StudioData } from "@/lib/AllTypes";
 
 const FeatursSection = async () => {
-  const res = await fetch("http://localhost:5000/explore-studio");
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/explore-studio`);
 
   const fearurs: StudioData[] = await res.json();
 
@@ -97,7 +97,7 @@ const FeatursSection = async () => {
                 </div>
 
                 <Link
-                  href={`/studios/${feature._id}`}
+                  href={`/Details/${feature._id}`}
                   className="group/link mt-5 inline-flex h-11 items-center justify-between rounded-lg border border-border px-4 text-sm font-semibold text-foreground transition-colors hover:border-brand hover:bg-brand hover:text-brand-foreground"
                 >
                   View Details
@@ -113,7 +113,7 @@ const FeatursSection = async () => {
 
         <div className="mt-12 text-center">
           <Link
-            href="/studios"
+            href="/Explore-Studios"
             className="group inline-flex h-12 items-center gap-2 rounded-full bg-primary px-7 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
           >
             Explore All Studios

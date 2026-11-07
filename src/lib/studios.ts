@@ -1,6 +1,10 @@
 import type { StudioData } from "@/lib/AllTypes"
 
-const BACKEND_URL = process.env.BACKEND_URL ?? "http://localhost:5000"
+const BACKEND_URL = (
+  process.env.BACKEND_URL ??
+  process.env.NEXT_PUBLIC_BACKEND_URL ??
+  "https://the-rising-star-server.vercel.app"
+).replace(/\/+$/, "")
 
 export const ALL_CATEGORIES_LABEL = "All spaces"
 
@@ -21,6 +25,25 @@ export async function getStudios(): Promise<StudioData[]> {
     const response = await fetch(`${BACKEND_URL}/studio`, {
       cache: "no-store",
     })
+
+    if (!response.ok) {
+      return []
+    }
+
+    const data: unknown = await response.json()
+
+    return Array.isArray(data) ? (data as StudioData[]) : []
+  } catch {
+    return []
+  }
+}
+
+export async function getStudiosByHost(email: string): Promise<StudioData[]> {
+  try {
+    const response = await fetch(
+      `${BACKEND_URL}/studio/${encodeURIComponent(email)}`,
+      { cache: "no-store" }
+    )
 
     if (!response.ok) {
       return []
