@@ -91,6 +91,26 @@ export async function getBookingsByEmail(
   }
 }
 
+export async function getBookingsByStudioIds(
+  studioIds: string[]
+): Promise<BookingData[]> {
+  if (studioIds.length === 0) {
+    return []
+  }
+
+  try {
+    const bookings = await getBookingsCollection()
+    const documents = await bookings
+      .find({ studioId: { $in: studioIds } })
+      .sort({ createdAt: -1 })
+      .toArray()
+
+    return documents.map(serializeBooking)
+  } catch {
+    return []
+  }
+}
+
 export function formatBookingDate(value: string) {
   const parts = value.split("-").map(Number)
 

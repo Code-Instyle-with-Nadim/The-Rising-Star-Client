@@ -101,7 +101,8 @@ export async function POST(request: Request) {
       )
     }
 
-    const today = new Date()
+    const now = new Date()
+    const today = new Date(now)
     today.setHours(0, 0, 0, 0)
 
     const selectedDate = new Date(`${bookingDate}T00:00:00`)
@@ -113,6 +114,23 @@ export async function POST(request: Request) {
       )
     }
 
+    if (selectedDate.getTime() === today.getTime()) {
+      const selectedStart = new Date(selectedDate)
+      selectedStart.setHours(
+        Math.floor(startMinutes / 60),
+        startMinutes % 60,
+        0,
+        0
+      )
+
+      if (selectedStart <= now) {
+        return NextResponse.json(
+          { message: "Please choose a time later today." },
+          { status: 400 }
+        )
+      }
+    }
+
     const db = await getDb()
     const studio = await db
       .collection("studio")
@@ -122,6 +140,16 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { message: "This studio could not be found." },
         { status: 404 }
+      )
+    }
+
+    const hostEmail =
+      typeof studio.hostEmail === "string" ? studio.hostEmail.toLowerCase() : ""
+
+    if (hostEmail && hostEmail === user.email.toLowerCase()) {
+      return NextResponse.json(
+        { message: "You cannot book your own studio." },
+        { status: 400 }
       )
     }
 

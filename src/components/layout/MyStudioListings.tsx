@@ -1,18 +1,44 @@
+'use client'
 import Image from "next/image"
 import Link from "next/link"
 import { MapPin, Pencil, Plus, Trash2 } from "lucide-react"
 
 import type { StudioData } from "@/lib/AllTypes"
+import { useRouter } from "next/navigation"
 
 type MyStudioListingsProps = {
   studios: StudioData[]
   addStudioHref?: string
 }
 
-export default function MyStudioListings({
+export default  function MyStudioListings({
   studios,
   addStudioHref = "/add-studio?new=1",
 }: MyStudioListingsProps) {
+  const router = useRouter()
+const handleDelete = async (id: string) => {
+  
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/studio/${id}`,
+      {
+        method: "DELETE",
+      }
+    );
+
+    const deleteList = await res.json();
+
+    if (res.ok) {
+      console.log(deleteList);
+    } else {
+      console.error("Delete failed:", deleteList.message);
+    }
+  } catch (error) {
+    console.error("Something went wrong:", error);
+  }
+  router.refresh()
+};
+
   return (
     <main className="flex-1 bg-background text-foreground">
       <div className="mx-auto w-full max-w-7xl px-6 pt-14 pb-20 lg:px-12 lg:pt-16 lg:pb-28">
@@ -111,6 +137,7 @@ export default function MyStudioListings({
                     </Link>
 
                     <button
+                    onClick={()=>handleDelete(studio._id)}
                       type="button"
                       className="inline-flex items-center gap-1.5 text-xs font-semibold text-foreground/80 transition hover:text-destructive"
                       aria-label={`Delete ${title}`}

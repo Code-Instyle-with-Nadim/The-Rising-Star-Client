@@ -33,6 +33,24 @@ type BookingDialogProps = {
 const triggerClassName =
   "mt-5 inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary px-4 text-[11px] font-semibold text-primary-foreground transition hover:bg-primary/90"
 
+function timeToMinutes(value: string) {
+  const [hours, minutes] = value.split(":").map(Number)
+
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) {
+    return null
+  }
+
+  return hours * 60 + minutes
+}
+
+function getTodayValue() {
+  const today = new Date()
+  const month = String(today.getMonth() + 1).padStart(2, "0")
+  const day = String(today.getDate()).padStart(2, "0")
+
+  return `${today.getFullYear()}-${month}-${day}`
+}
+
 export default function BookingDialog({ studio, user }: BookingDialogProps) {
   const router = useRouter()
   const pathname = usePathname()
@@ -41,6 +59,14 @@ export default function BookingDialog({ studio, user }: BookingDialogProps) {
   const [startTime, setStartTime] = useState("10:00")
   const [endTime, setEndTime] = useState("12:00")
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const startMinutes = timeToMinutes(startTime)
+  const endMinutes = timeToMinutes(endTime)
+  const durationHours =
+    startMinutes !== null && endMinutes !== null && endMinutes > startMinutes
+      ? (endMinutes - startMinutes) / 60
+      : 0
+  const estimatedTotal = durationHours * studio.hourlyRate
 
   if (!user) {
     return (
@@ -165,6 +191,7 @@ export default function BookingDialog({ studio, user }: BookingDialogProps) {
                   name="bookingDate"
                   type="date"
                   value={bookingDate}
+                  min={getTodayValue()}
                   onChange={(event) => setBookingDate(event.target.value)}
                   autoFocus
                   required
@@ -227,11 +254,23 @@ export default function BookingDialog({ studio, user }: BookingDialogProps) {
               </div>
             </div>
 
-            <div className="flex items-center justify-between border-t border-border/70 pt-4 text-xs">
-              <span className="text-muted-foreground">Security deposit</span>
-              <span className="font-semibold text-foreground">
-                ${studio.securityDeposit}
-              </span>
+            <div className="space-y-2 border-t border-border/70 pt-4 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Estimated total</span>
+                <span className="font-semibold text-foreground">
+                  {new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: "USD",
+                    maximumFractionDigits: 2,
+                  }).format(estimatedTotal)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Security deposit</span>
+                <span className="font-semibold text-foreground">
+                  ${studio.securityDeposit}
+                </span>
+              </div>
             </div>
 
             <Button

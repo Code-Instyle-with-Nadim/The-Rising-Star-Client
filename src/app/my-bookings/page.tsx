@@ -6,8 +6,7 @@ import { redirect } from "next/navigation"
 import { ArrowUpRight, CalendarDays, Clock3, MapPin } from "lucide-react"
 
 import CancelBookingButton from "@/components/bookings/cancel-booking-button"
-import { Badge } from "@/components/ui/badge"
-import type { BookingStatus } from "@/lib/AllTypes"
+import { BookingStatusBadge } from "@/components/bookings/booking-status-badge"
 import { auth } from "@/lib/auth"
 import {
   formatBookingDate,
@@ -19,17 +18,6 @@ import {
 export const metadata: Metadata = {
   title: "My bookings",
   description: "View and manage your studio booking requests.",
-}
-
-const statusStyles: Record<BookingStatus, string> = {
-  Pending:
-    "border-amber-300/70 bg-amber-100 text-amber-900 dark:border-amber-400/30 dark:bg-amber-400/15 dark:text-amber-200",
-  Confirmed:
-    "border-sky-300/70 bg-sky-100 text-sky-900 dark:border-sky-400/30 dark:bg-sky-400/15 dark:text-sky-200",
-  Completed:
-    "border-emerald-300/70 bg-emerald-100 text-emerald-900 dark:border-emerald-400/30 dark:bg-emerald-400/15 dark:text-emerald-200",
-  Cancelled:
-    "border-rose-300/70 bg-rose-100 text-rose-900 dark:border-rose-400/30 dark:bg-rose-400/15 dark:text-rose-200",
 }
 
 export default async function MyBookingsPage() {
@@ -91,8 +79,6 @@ export default async function MyBookingsPage() {
           <div className="mt-10 space-y-5 sm:mt-12">
             {bookings.map((booking) => {
               const image = booking.studioImage || "/assets/hero-1.jpg"
-              const statusClass =
-                statusStyles[booking.status] ?? statusStyles.Pending
 
               return (
                 <article
@@ -115,13 +101,7 @@ export default async function MyBookingsPage() {
                         <h2 className="truncate text-base font-semibold tracking-tight">
                           {booking.studioTitle}
                         </h2>
-                        <Badge
-                          variant="outline"
-                          className={`gap-1.5 text-[10px] font-semibold ${statusClass}`}
-                        >
-                          <span className="size-1.5 rounded-full bg-current" />
-                          {booking.status}
-                        </Badge>
+                        <BookingStatusBadge status={booking.status} />
                       </div>
 
                       <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
