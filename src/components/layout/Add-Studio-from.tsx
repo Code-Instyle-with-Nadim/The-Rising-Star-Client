@@ -1,6 +1,9 @@
 "use client"
 
 import Image from "next/image"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { toast } from "react-toastify"
 import {
   ArrowUpRight,
   Banknote,
@@ -19,7 +22,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { User } from "@/lib/AllTypes"
+import type { StudioData, User } from "@/lib/AllTypes"
 
 const categories = [
   "Photo Studio",
@@ -42,55 +45,108 @@ const amenities = [
   "Changing room",
 ]
 
-const AddStudioFrom = ({ user }: { user: User }) => {
+const AddStudioFrom = ({
+  user,
+  studio,
+}: {
+  user: User
+  studio?: StudioData
+}) => {
+  const router = useRouter()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const isEditing = Boolean(studio)
+
   const onSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    const formData = new FormData(e.currentTarget)
-    const imageUrl = String(formData.get("imageUrl") ?? "")
-    const galleryImages = String(formData.get("images") ?? "")
-      .split(/\r?\n/)
-      .map((url) => url.trim())
-      .filter(Boolean)
-
-    const data = {
-      title: formData.get("title"),
-      category: formData.get("category"),
-      maxCapacity: Number(formData.get("maxCapacity")),
-      location: formData.get("location"),
-      hourlyRate: Number(formData.get("hourlyRate")),
-      securityDeposit: Number(formData.get("securityDeposit") ?? 0),
-      imageUrl,
-      images: galleryImages.length > 0 ? galleryImages : [imageUrl],
-      amenities: formData.getAll("amenities"),
-      overview: formData.get("overview"),
-      hostName: user.name,
-      hostEmail: user.email,
-      rating: 0,
-      reviewCount: 0,
+    if (isSubmitting) {
+      return
     }
 
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+    setIsSubmitting(true)
 
-console.log("API URL:", API_URL);
+    try {
+      const formData = new FormData(e.currentTarget)
+      const imageUrl = String(formData.get("imageUrl") ?? "")
+      const galleryImages = String(formData.get("images") ?? "")
+        .split(/\r?\n/)
+        .map((url) => url.trim())
+        .filter(Boolean)
 
-if (!API_URL) {
-  throw new Error("BACKEND_URL is undefined!");
-}
+      const data = {
+        title: formData.get("title"),
+        category: formData.get("category"),
+        maxCapacity: Number(formData.get("maxCapacity")),
+        location: formData.get("location"),
+        hourlyRate: Number(formData.get("hourlyRate")),
+        securityDeposit: Number(formData.get("securityDeposit") ?? 0),
+        imageUrl,
+        images: galleryImages.length > 0 ? galleryImages : [imageUrl],
+        amenities: formData.getAll("amenities"),
+        overview: formData.get("overview"),
+        hostName: user.name,
+        hostEmail: user.email,
+      }
 
-const res = await fetch(`${API_URL}/studio`, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify(data),
-});
+      if (isEditing && studio) {
+        const response = await fetch(`/api/studio/${studio._id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        })
+        const result = (await response.json().catch(() => null)) as {
+          message?: string
+        } | null
 
-const result = await res.json();
+        if (!response.ok) {
+          throw new Error(result?.message || "Could not update the studio.")
+        }
 
-console.log(result);
+        toast.success("Studio updated successfully.")
+        router.push("/my-listings")
+        router.refresh()
+        return
+      }
 
-console.log(result);
+      const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL
+
+      if (!API_URL) {
+        throw new Error("Backend URL is not configured.")
+      }
+
+      const response = await fetch(`${API_URL}/studio`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...data,
+          rating: 0,
+          reviewCount: 0,
+        }),
+      })
+      const result = (await response.json().catch(() => null)) as {
+        message?: string
+      } | null
+
+      if (!response.ok) {
+        throw new Error(result?.message || "Could not publish the studio.")
+      }
+
+      toast.success("Studio published successfully.")
+      router.push("/my-listings")
+      router.refresh()
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong. Please try again."
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
   }
   return (
     <main className="grid flex-1 lg:grid-cols-2">
@@ -125,17 +181,19 @@ console.log(result);
         <div className="w-full max-w-[27rem]">
           <div className="flex items-center gap-2 text-[10px] font-semibold tracking-[0.22em] text-muted-foreground uppercase">
             <span className="size-1.5 rounded-full bg-highlight" />
-            Become a host
+            {isEditing ? "Your listing" : "Become a host"}
           </div>
 
           <h1 className="mt-6 font-serif text-5xl leading-[0.95] tracking-[-0.02em] sm:text-6xl">
-            Share your
+            {isEditing ? "Edit your" : "Share your"}
             <br />
             <span className="text-highlight italic">space.</span>
           </h1>
 
           <p className="mt-5 text-sm leading-6 text-muted-foreground">
-            Tell creators about your studio and start welcoming bookings.
+            {isEditing
+              ? "Update your studio details so creators always see the right information."
+              : "Tell creators about your studio and start welcoming bookings."}
           </p>
 
           <form
@@ -152,6 +210,7 @@ console.log(result);
                   id="title"
                   name="title"
                   type="text"
+                  defaultValue={studio?.title}
                   placeholder="The Glasshouse Studio"
                   required
                   className="h-11 rounded-md bg-card pl-10"
@@ -169,7 +228,7 @@ console.log(result);
                   <select
                     id="category"
                     name="category"
-                    defaultValue=""
+                    defaultValue={studio?.category ?? ""}
                     required
                     className="h-11 w-full appearance-none rounded-md border border-input bg-card py-1 pr-9 pl-10 text-base outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm"
                   >
@@ -197,6 +256,7 @@ console.log(result);
                     name="maxCapacity"
                     type="number"
                     min={1}
+                    defaultValue={studio?.maxCapacity}
                     placeholder="12"
                     required
                     className="h-11 rounded-md bg-card pl-10"
@@ -215,6 +275,7 @@ console.log(result);
                   id="location"
                   name="location"
                   type="text"
+                  defaultValue={studio?.location}
                   placeholder="Gulshan, Dhaka"
                   required
                   className="h-11 rounded-md bg-card pl-10"
@@ -234,6 +295,7 @@ console.log(result);
                     name="hourlyRate"
                     type="number"
                     min={0}
+                    defaultValue={studio?.hourlyRate}
                     placeholder="45"
                     required
                     className="h-11 rounded-md bg-card pl-10"
@@ -255,6 +317,7 @@ console.log(result);
                     name="securityDeposit"
                     type="number"
                     min={0}
+                    defaultValue={studio?.securityDeposit}
                     placeholder="100"
                     className="h-11 rounded-md bg-card pl-10"
                   />
@@ -272,6 +335,7 @@ console.log(result);
                   id="imageUrl"
                   name="imageUrl"
                   type="url"
+                  defaultValue={studio?.imageUrl}
                   placeholder="Upload an image or paste an image URL"
                   required
                   className="h-11 rounded-md bg-card pl-10"
@@ -303,6 +367,11 @@ console.log(result);
               <Textarea
                 id="images"
                 name="images"
+                defaultValue={
+                  Array.isArray(studio?.images)
+                    ? studio.images.join("\n")
+                    : undefined
+                }
                 placeholder={"https://...\nhttps://..."}
                 className="min-h-24 rounded-md bg-card font-mono text-xs leading-6"
               />
@@ -315,6 +384,7 @@ console.log(result);
               <Textarea
                 id="overview"
                 name="overview"
+                defaultValue={studio?.overview}
                 placeholder="Describe the space, the light and what makes it special..."
                 required
                 className="min-h-24 rounded-md bg-card"
@@ -341,6 +411,10 @@ console.log(result);
                         id={id}
                         name="amenities"
                         value={amenity}
+                        defaultChecked={
+                          Array.isArray(studio?.amenities) &&
+                          studio.amenities.includes(amenity)
+                        }
                       />
                       {amenity}
                     </Label>
@@ -351,9 +425,16 @@ console.log(result);
 
             <Button
               type="submit"
+              disabled={isSubmitting}
               className="h-11 w-full rounded-sm bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary/90"
             >
-              Publish studio
+              {isSubmitting
+                ? isEditing
+                  ? "Saving changes..."
+                  : "Publishing..."
+                : isEditing
+                  ? "Save changes"
+                  : "Publish studio"}
               <ArrowUpRight className="size-4" />
             </Button>
           </form>

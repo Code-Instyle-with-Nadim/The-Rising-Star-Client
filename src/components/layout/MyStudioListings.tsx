@@ -101,14 +101,15 @@ export default function MyStudioListings({
                   </div>
 
                   <div className="flex shrink-0 items-center gap-6 self-end sm:self-auto">
-                    <button
-                      type="button"
+                    <Link
+                      href={`/update-add/${studio._id}`}
                       className="inline-flex items-center gap-1.5 text-xs font-semibold text-foreground/80 transition hover:text-foreground"
                       aria-label={`Edit ${title}`}
                     >
                       <Pencil className="size-3.5" />
                       Edit
-                    </button>
+                    </Link>
+
                     <button
                       type="button"
                       className="inline-flex items-center gap-1.5 text-xs font-semibold text-foreground/80 transition hover:text-destructive"

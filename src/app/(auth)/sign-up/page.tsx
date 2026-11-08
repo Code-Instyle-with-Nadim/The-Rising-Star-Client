@@ -22,15 +22,20 @@ const SignUpPage = () => {
           ...data,
         })
         if(resData){
-          toast.success(`${resData.user.name}Successfully Done the Registation`)
-          router.push("/sign-in")
+          const redirectParam = new URLSearchParams(window.location.search).get("redirect")
+          const signInUrl = redirectParam
+            ? `/sign-in?redirect=${encodeURIComponent(redirectParam)}`
+            : "/sign-in"
+
+          toast.success(`Welcome, ${resData.user.name}`)
+          router.push(signInUrl)
           router.refresh()
-    
+        } else if (error) {
+          toast.error(error.message || "Could not create your account.")
         }
-        
       };
       const signInGoogle = async () => {
-  const data = await authClient.signIn.social({
+  await authClient.signIn.social({
     provider: "google",
   });
 };

@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { authClient } from "@/lib/auth-client"
 import { toast } from "react-toastify"
 import { useRouter } from "next/navigation"
-import { ArrowUpRight, ImageIcon, Lock, Mail, User } from "lucide-react"
+import { ArrowUpRight, Lock, Mail } from "lucide-react"
 import Image from "next/image"
 
 const SignInPage = () => {
@@ -22,15 +22,21 @@ const SignInPage = () => {
         ...data,
       })
       if(resData){
-        toast.success(`${resData.user.name}Successfully Done the Registation`)
-        router.push("/feature")
+        const redirectParam = new URLSearchParams(window.location.search).get("redirect")
+        const redirectTo =
+          redirectParam?.startsWith("/") && !redirectParam.startsWith("//")
+            ? redirectParam
+            : "/Explore-Studios"
+
+        toast.success(`Welcome back, ${resData.user.name}`)
+        router.push(redirectTo)
         router.refresh()
-  
+      } else if (error) {
+        toast.error(error.message || "Could not sign in. Please try again.")
       }
-      
     };
           const signInGoogle = async () => {
-  const data = await authClient.signIn.social({
+  await authClient.signIn.social({
     provider: "google",
   });
 };

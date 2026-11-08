@@ -1,17 +1,13 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import { headers } from "next/headers"
 import { notFound } from "next/navigation"
-import {
-  ArrowLeft,
-  ArrowUpRight,
-  MapPin,
-  ShieldCheck,
-  Star,
-} from "lucide-react"
+import { ArrowLeft, MapPin, ShieldCheck, Star } from "lucide-react"
 
+import BookingDialog from "@/components/details/booking-dialog"
 import { ReviewForm } from "@/components/details/review-form"
 import { StudioGallery } from "@/components/details/studio-gallery"
-import { Button } from "@/components/ui/button"
+import { auth } from "@/lib/auth"
 import { getStudio } from "@/lib/studios"
 
 export async function generateMetadata({
@@ -39,6 +35,11 @@ export default async function DetailsPage({
   if (!studio) {
     notFound()
   }
+
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  })
+  const user = session?.user
 
   const rating = Number(studio.rating ?? 0)
   const reviewCount = Number(studio.reviewCount ?? 0)
@@ -193,13 +194,22 @@ export default async function DetailsPage({
                 {studio.hostName || "the host"}.
               </p>
 
-              <Button
-                type="button"
-                className="mt-5 h-10 w-full rounded-md bg-primary px-4 text-[11px] font-semibold text-primary-foreground hover:bg-primary/90"
-              >
-                Book Workspace Now
-                <ArrowUpRight aria-hidden className="size-3.5" />
-              </Button>
+              <BookingDialog
+                studio={{
+                  _id: studio._id,
+                  title: studio.title,
+                  hourlyRate: Number(studio.hourlyRate ?? 0),
+                  securityDeposit: Number(studio.securityDeposit ?? 0),
+                }}
+                user={
+                  user
+                    ? {
+                        name: user.name,
+                        email: user.email,
+                      }
+                    : null
+                }
+              />
 
               <p className="mt-3 flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground">
                 <ShieldCheck aria-hidden className="size-3" />

@@ -31,3 +31,23 @@ export interface User {
  name: string;
  image?: string | null ;
 } 
+
+export type BookingStatus = "Pending" | "Confirmed" | "Completed" | "Cancelled"
+
+export interface BookingData {
+  _id: string
+  studioId: string
+  studioTitle: string
+  studioImage?: string
+  studioLocation?: string
+  userEmail: string
+  userName: string
+  bookingDate: string
+  startTime: string
+  endTime: string
+  totalPrice: number
+  securityDeposit?: number
+  status: BookingStatus
+  createdAt: string
+  updatedAt?: string
+}
