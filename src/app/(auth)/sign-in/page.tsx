@@ -8,36 +8,49 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { authClient } from "@/lib/auth-client"
 import { toast } from "react-toastify"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { ArrowUpRight, Lock, Mail } from "lucide-react"
 import Image from "next/image"
 
 const SignInPage = () => {
+const searchParams = useSearchParams()
+
+const redirectTo = searchParams.get('redirect')
+
+const callbackURL =
+  redirectTo?.startsWith('/') && !redirectTo.startsWith('//')
+    ? redirectTo
+    : '/Explore-Studios'
+    console.log('Callback URL:', callbackURL)
+
+
     const router = useRouter()
      const onSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
-      e.preventDefault();
-      const formData = new FormData(e.currentTarget);
-      const data = Object.fromEntries(formData.entries())as {email:string,password:string}
-  const { data:resData, error } = await authClient.signIn.email({
-        ...data,
-      })
-      if(resData){
-        const redirectParam = new URLSearchParams(window.location.search).get("redirect")
-        const redirectTo =
-          redirectParam?.startsWith("/") && !redirectParam.startsWith("//")
-            ? redirectParam
-            : "/Explore-Studios"
+  e.preventDefault()
 
-        toast.success(`Welcome back, ${resData.user.name}`)
-        router.push(redirectTo)
-        router.refresh()
-      } else if (error) {
-        toast.error(error.message || "Could not sign in. Please try again.")
-      }
-    };
+  const formData = new FormData(e.currentTarget)
+  const data = Object.fromEntries(formData.entries()) as {
+    email: string
+    password: string
+  }
+
+  const { data: resData, error } = await authClient.signIn.email({
+    ...data,
+    callbackURL: callbackURL,
+  })
+
+  if (resData) {
+    toast.success(`Welcome back, ${resData.user.name}`)
+    router.push(callbackURL)
+    router.refresh()
+  } else if (error) {
+    toast.error(error.message || "Could not sign in. Please try again.")
+  }
+}
           const signInGoogle = async () => {
   await authClient.signIn.social({
     provider: "google",
+    callbackURL: callbackURL,
   });
 };
 
@@ -163,12 +176,12 @@ const SignInPage = () => {
           </Button>
 
           <p className="mt-8 text-center text-xs text-muted-foreground">
-            Already have an account?{" "}
+            Do not have any account?{" "}
             <Link
-              href="/sign-in"
+              href="/sign-up"
               className="font-semibold text-foreground underline-offset-4 hover:underline"
             >
-              Log in
+              Sign Up
             </Link>
           </p>
         </div>

@@ -9,10 +9,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "react-toastify"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { authClient } from "@/lib/auth-client"
 
 const SignUpPage = () => {
+    const searchParams = useSearchParams()
+  
+  const callbackURL = searchParams.get('callbackURL') || '/'
   const router = useRouter()
        const onSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -20,6 +23,7 @@ const SignUpPage = () => {
         const data = Object.fromEntries(formData.entries())as {name:string,image:string, email:string,password:string}
     const { data:resData, error } = await authClient.signUp.email({
           ...data,
+           callbackURL: callbackURL,
         })
         if(resData){
           const redirectParam = new URLSearchParams(window.location.search).get("redirect")
@@ -37,6 +41,7 @@ const SignUpPage = () => {
       const signInGoogle = async () => {
   await authClient.signIn.social({
     provider: "google",
+    callbackURL: callbackURL,
   });
 };
 
