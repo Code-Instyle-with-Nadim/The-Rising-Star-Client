@@ -3,7 +3,11 @@ import { NextResponse } from "next/server"
 import { ObjectId } from "mongodb"
 
 import { auth } from "@/lib/auth"
-import { getBookingsCollection, serializeBooking } from "@/lib/bookings"
+import {
+  getBookingsCollection,
+  serializeBooking,
+  updateBookingViaBackend,
+} from "@/lib/bookings"
 
 export async function PATCH(
   _request: Request,
@@ -56,29 +60,16 @@ export async function PATCH(
       )
     }
 
-    const updatedBooking = await bookings.findOneAndUpdate(
-      {
-        _id: new ObjectId(id),
-        userEmail: booking.userEmail,
-        status: "Pending",
-      },
-      {
-        $set: {
-          status: "Cancelled",
-          updatedAt: new Date(),
-        },
-      },
-      { returnDocument: "after" }
+    const updatedAt = new Date()
+
+    await updateBookingViaBackend(id, {
+      status: "Cancelled",
+      updatedAt,
+    })
+
+    return NextResponse.json(
+      serializeBooking({ ...booking, status: "Cancelled", updatedAt })
     )
-
-    if (!updatedBooking) {
-      return NextResponse.json(
-        { message: "This booking can no longer be cancelled." },
-        { status: 409 }
-      )
-    }
-
-    return NextResponse.json(serializeBooking(updatedBooking))
   } catch {
     return NextResponse.json(
       { message: "Could not cancel the booking. Please try again." },

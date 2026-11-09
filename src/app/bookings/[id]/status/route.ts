@@ -8,8 +8,9 @@ import {
   getBookingsCollection,
   isBookingStatus,
   serializeBooking,
+  updateBookingViaBackend,
 } from "@/lib/bookings"
-import { getDb } from "@/lib/mongodb"
+import { getStudio } from "@/lib/studios"
 
 const allowedTransitions: Partial<Record<BookingStatus, BookingStatus[]>> = {
   Pending: ["Confirmed", "Cancelled"],
@@ -78,10 +79,7 @@ export async function PATCH(
       )
     }
 
-    const db = await getDb()
-    const studio = await db
-      .collection("studio")
-      .findOne({ _id: new ObjectId(booking.studioId) })
+    const studio = await getStudio(booking.studioId)
 
     if (!studio) {
       return NextResponse.json(
@@ -100,6 +98,13 @@ export async function PATCH(
       )
     }
 
+    if (booking.userEmail.toLowerCase() === hostEmail) {
+      return NextResponse.json(
+        { message: "You cannot manage a booking for your own stay." },
+        { status: 403 }
+      )
+    }
+
     const nextStatuses = allowedTransitions[booking.status]
 
     if (!nextStatuses?.includes(status)) {
@@ -111,28 +116,16 @@ export async function PATCH(
       )
     }
 
-    const updatedBooking = await bookings.findOneAndUpdate(
-      {
-        _id: new ObjectId(id),
-        status: booking.status,
-      },
-      {
-        $set: {
-          status,
-          updatedAt: new Date(),
-        },
-      },
-      { returnDocument: "after" }
+    const updatedAt = new Date()
+
+    await updateBookingViaBackend(id, {
+      status,
+      updatedAt,
+    })
+
+    return NextResponse.json(
+      serializeBooking({ ...booking, status, updatedAt })
     )
-
-    if (!updatedBooking) {
-      return NextResponse.json(
-        { message: "This booking was already updated. Please refresh." },
-        { status: 409 }
-      )
-    }
-
-    return NextResponse.json(serializeBooking(updatedBooking))
   } catch {
     return NextResponse.json(
       { message: "Could not update the booking. Please try again." },

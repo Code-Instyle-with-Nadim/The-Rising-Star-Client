@@ -41,7 +41,7 @@ export async function getStudios(): Promise<StudioData[]> {
 export async function getStudiosByHost(email: string): Promise<StudioData[]> {
   try {
     const response = await fetch(
-      `${BACKEND_URL}/studio/${encodeURIComponent(email)}`,
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/studio/${encodeURIComponent(email)}`,
       { cache: "no-store" }
     )
 
@@ -77,5 +77,26 @@ export async function getStudio(id: string): Promise<StudioData | null> {
     return data as StudioData
   } catch {
     return null
+  }
+}
+
+export async function updateStudioViaBackend(
+  id: string,
+  updates: Partial<Omit<StudioData, "_id">> & { updatedAt?: string }
+): Promise<void> {
+  const response = await fetch(
+    `${BACKEND_URL}/studio/${encodeURIComponent(id)}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updates),
+      cache: "no-store",
+    }
+  )
+
+  if (!response.ok) {
+    throw new Error("Could not update the studio.")
   }
 }

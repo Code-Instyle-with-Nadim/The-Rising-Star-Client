@@ -58,6 +58,7 @@ export default function BookingDialog({ studio, user }: BookingDialogProps) {
   const [bookingDate, setBookingDate] = useState("")
   const [startTime, setStartTime] = useState("10:00")
   const [endTime, setEndTime] = useState("12:00")
+  const [today, setToday] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const startMinutes = timeToMinutes(startTime)
@@ -137,14 +138,26 @@ export default function BookingDialog({ studio, user }: BookingDialogProps) {
     <>
       <Button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setToday(getTodayValue())
+          setOpen(true)
+        }}
         className={triggerClassName}
       >
         Book Workspace Now
         <CalendarDays aria-hidden className="size-3.5" />
       </Button>
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog
+        open={open}
+        onOpenChange={(nextOpen) => {
+          if (nextOpen) {
+            setToday(getTodayValue())
+          }
+
+          setOpen(nextOpen)
+        }}
+      >
         <DialogContent
           showCloseButton={false}
           overlayClassName="bg-black/55 backdrop-blur-[2px]"
@@ -191,7 +204,7 @@ export default function BookingDialog({ studio, user }: BookingDialogProps) {
                   name="bookingDate"
                   type="date"
                   value={bookingDate}
-                  min={getTodayValue()}
+                  min={today || undefined}
                   onChange={(event) => setBookingDate(event.target.value)}
                   autoFocus
                   required

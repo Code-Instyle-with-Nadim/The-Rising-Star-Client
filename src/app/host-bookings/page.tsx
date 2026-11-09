@@ -20,7 +20,7 @@ import {
   formatBookingDate,
   formatBookingTime,
   formatBookingTotal,
-  getBookingsByStudioIds,
+  getHostBookings,
 } from "@/lib/bookings"
 import { getStudiosByHost } from "@/lib/studios"
 
@@ -47,8 +47,10 @@ export default async function HostBookingsPage() {
     redirect("/sign-in")
   }
 
-  const studios = await getStudiosByHost(user.email)
-  const bookings = await getBookingsByStudioIds(studios.map((studio) => studio._id))
+  const [studios, bookings] = await Promise.all([
+    getStudiosByHost(user.email),
+    getHostBookings(user.email),
+  ])
   const sortedBookings = [...bookings].sort(
     (a, b) =>
       statusOrder[a.status] - statusOrder[b.status] ||

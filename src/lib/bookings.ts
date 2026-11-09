@@ -1,7 +1,13 @@
-import type { ObjectId, WithId } from "mongodb"
+import type { ObjectId } from "mongodb"
 
 import type { BookingData, BookingStatus } from "@/lib/AllTypes"
 import { getDb } from "@/lib/mongodb"
+
+const BACKEND_URL = (
+  process.env.BACKEND_URL ??
+  process.env.NEXT_PUBLIC_BACKEND_URL ??
+  "https://the-rising-star-server.vercel.app"
+).replace(/\/+$/, "")
 
 export interface BookingDocument {
   _id?: ObjectId
@@ -9,6 +15,8 @@ export interface BookingDocument {
   studioTitle: string
   studioImage?: string
   studioLocation?: string
+  hostEmail?: string
+  hostName?: string
   userEmail: string
   userName: string
   bookingDate: string
@@ -17,8 +25,12 @@ export interface BookingDocument {
   totalPrice: number
   securityDeposit?: number
   status: BookingStatus
-  createdAt: Date
-  updatedAt?: Date
+  createdAt: Date | string
+  updatedAt?: Date | string
+}
+
+type BookingWithId = Omit<BookingDocument, "_id"> & {
+  _id: ObjectId | string
 }
 
 const BOOKING_STATUSES: BookingStatus[] = [
@@ -35,9 +47,17 @@ export function isBookingStatus(value: unknown): value is BookingStatus {
   )
 }
 
-export function serializeBooking(
-  booking: WithId<BookingDocument> | (BookingDocument & { _id: ObjectId })
-): BookingData {
+function isSelfBooking(booking: {
+  userEmail: string
+  hostEmail?: string
+}): boolean {
+  const hostEmail = booking.hostEmail?.trim().toLowerCase()
+  const userEmail = booking.userEmail?.trim().toLowerCase()
+
+  return Boolean(hostEmail && userEmail && hostEmail === userEmail)
+}
+
+export function serializeBooking(booking: BookingWithId): BookingData {
   return {
     _id: booking._id.toString(),
     studioId: String(booking.studioId ?? ""),
@@ -48,6 +68,10 @@ export function serializeBooking(
       typeof booking.studioLocation === "string"
         ? booking.studioLocation
         : undefined,
+    hostEmail:
+      typeof booking.hostEmail === "string" ? booking.hostEmail : undefined,
+    hostName:
+      typeof booking.hostName === "string" ? booking.hostName : undefined,
     userEmail: String(booking.userEmail ?? ""),
     userName: String(booking.userName ?? ""),
     bookingDate: String(booking.bookingDate ?? ""),
@@ -66,7 +90,9 @@ export function serializeBooking(
     updatedAt:
       booking.updatedAt instanceof Date
         ? booking.updatedAt.toISOString()
-        : undefined,
+        : typeof booking.updatedAt === "string"
+          ? booking.updatedAt
+          : undefined,
   }
 }
 
@@ -82,32 +108,86 @@ export async function getBookingsByEmail(
     const bookings = await getBookingsCollection()
     const documents = await bookings
       .find({ userEmail: email.toLowerCase() })
-      .sort({ createdAt: -1 })
       .toArray()
 
-    return documents.map(serializeBooking)
+    return documents
+      .map(serializeBooking)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
   } catch {
     return []
   }
 }
 
-export async function getBookingsByStudioIds(
-  studioIds: string[]
+export async function getHostBookings(
+  email: string
 ): Promise<BookingData[]> {
-  if (studioIds.length === 0) {
-    return []
-  }
-
   try {
-    const bookings = await getBookingsCollection()
-    const documents = await bookings
-      .find({ studioId: { $in: studioIds } })
-      .sort({ createdAt: -1 })
-      .toArray()
+    const response = await fetch(
+      `${BACKEND_URL}/bookings/${encodeURIComponent(email.toLowerCase())}`,
+      { cache: "no-store" }
+    )
 
-    return documents.map(serializeBooking)
+    if (!response.ok) {
+      return []
+    }
+
+    const data: unknown = await response.json()
+
+    if (!Array.isArray(data)) {
+      return []
+    }
+
+    return data
+      .map((booking) => serializeBooking(booking as BookingWithId))
+      .filter((booking) => !isSelfBooking(booking))
   } catch {
     return []
+  }
+}
+
+export async function createBookingViaBackend(
+  booking: Omit<BookingDocument, "_id">
+): Promise<BookingData> {
+  const response = await fetch(`${BACKEND_URL}/bookings`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(booking),
+    cache: "no-store",
+  })
+
+  if (!response.ok) {
+    throw new Error("Could not create the booking.")
+  }
+
+  const data = (await response.json().catch(() => null)) as {
+    result?: { insertedId?: string }
+    insertedId?: string
+  } | null
+  const insertedId = data?.result?.insertedId ?? data?.insertedId
+
+  return serializeBooking({ ...booking, _id: insertedId ?? "" })
+}
+
+export async function updateBookingViaBackend(
+  id: string,
+  updates: Partial<Omit<BookingDocument, "_id">>
+): Promise<void> {
+  const response = await fetch(
+    `${BACKEND_URL}/bookings/${encodeURIComponent(id)}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updates),
+      cache: "no-store",
+    }
+  )
+
+  if (!response.ok) {
+    throw new Error("Could not update the booking.")
   }
 }
 

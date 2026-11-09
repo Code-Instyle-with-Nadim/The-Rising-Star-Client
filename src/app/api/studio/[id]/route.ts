@@ -3,7 +3,7 @@ import { NextResponse } from "next/server"
 import { ObjectId } from "mongodb"
 
 import { auth } from "@/lib/auth"
-import { getDb } from "@/lib/mongodb"
+import { getStudio, updateStudioViaBackend } from "@/lib/studios"
 
 export async function PATCH(
   request: Request,
@@ -80,9 +80,7 @@ export async function PATCH(
         typeof amenity === "string" && amenity.length > 0
     )
 
-    const db = await getDb()
-    const studios = db.collection("studio")
-    const studio = await studios.findOne({ _id: new ObjectId(id) })
+    const studio = await getStudio(id)
 
     if (!studio) {
       return NextResponse.json(
@@ -101,24 +99,19 @@ export async function PATCH(
       )
     }
 
-    await studios.updateOne(
-      { _id: new ObjectId(id) },
-      {
-        $set: {
-          title,
-          category,
-          maxCapacity,
-          location,
-          hourlyRate,
-          securityDeposit,
-          imageUrl,
-          images: images.length > 0 ? images : [imageUrl],
-          amenities,
-          overview,
-          updatedAt: new Date(),
-        },
-      }
-    )
+    await updateStudioViaBackend(id, {
+      title,
+      category,
+      maxCapacity,
+      location,
+      hourlyRate,
+      securityDeposit,
+      imageUrl,
+      images: images.length > 0 ? images : [imageUrl],
+      amenities,
+      overview,
+      updatedAt: new Date().toISOString(),
+    })
 
     return NextResponse.json({ message: "Studio updated successfully." })
   } catch {

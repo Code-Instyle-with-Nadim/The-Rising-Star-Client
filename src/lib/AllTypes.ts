@@ -40,6 +40,8 @@ export interface BookingData {
   studioTitle: string
   studioImage?: string
   studioLocation?: string
+  hostEmail?: string
+  hostName?: string
   userEmail: string
   userName: string
   bookingDate: string

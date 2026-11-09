@@ -5,11 +5,11 @@ import { ObjectId } from "mongodb"
 import type { BookingStatus } from "@/lib/AllTypes"
 import { auth } from "@/lib/auth"
 import {
+  createBookingViaBackend,
   getBookingsCollection,
-  serializeBooking,
   type BookingDocument,
 } from "@/lib/bookings"
-import { getDb } from "@/lib/mongodb"
+import { getStudio } from "@/lib/studios"
 
 const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/
 
@@ -131,10 +131,7 @@ export async function POST(request: Request) {
       }
     }
 
-    const db = await getDb()
-    const studio = await db
-      .collection("studio")
-      .findOne({ _id: new ObjectId(studioId) })
+    const studio = await getStudio(studioId)
 
     if (!studio) {
       return NextResponse.json(
@@ -146,7 +143,14 @@ export async function POST(request: Request) {
     const hostEmail =
       typeof studio.hostEmail === "string" ? studio.hostEmail.toLowerCase() : ""
 
-    if (hostEmail && hostEmail === user.email.toLowerCase()) {
+    if (!hostEmail) {
+      return NextResponse.json(
+        { message: "This studio is missing host details." },
+        { status: 400 }
+      )
+    }
+
+    if (hostEmail === user.email.toLowerCase()) {
       return NextResponse.json(
         { message: "You cannot book your own studio." },
         { status: 400 }
@@ -174,13 +178,16 @@ export async function POST(request: Request) {
     const durationHours = (endMinutes - startMinutes) / 60
     const totalPrice = Math.round(durationHours * hourlyRate * 100) / 100
 
-    const booking: BookingDocument = {
+    const booking: Omit<BookingDocument, "_id"> = {
       studioId,
       studioTitle: String(studio.title ?? "Studio"),
       studioImage:
         typeof studio.imageUrl === "string" ? studio.imageUrl : undefined,
       studioLocation:
         typeof studio.location === "string" ? studio.location : undefined,
+      hostEmail,
+      hostName:
+        typeof studio.hostName === "string" ? studio.hostName : undefined,
       userEmail: user.email.toLowerCase(),
       userName: user.name,
       bookingDate,
@@ -192,12 +199,9 @@ export async function POST(request: Request) {
       createdAt: new Date(),
     }
 
-    const result = await bookings.insertOne(booking)
+    const createdBooking = await createBookingViaBackend(booking)
 
-    return NextResponse.json(
-      serializeBooking({ ...booking, _id: result.insertedId }),
-      { status: 201 }
-    )
+    return NextResponse.json(createdBooking, { status: 201 })
   } catch {
     return NextResponse.json(
       { message: "Could not create the booking. Please try again." },
