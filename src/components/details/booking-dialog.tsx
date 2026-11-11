@@ -80,6 +80,7 @@ export default function BookingDialog({ studio, user }: BookingDialogProps) {
       </Link>
     )
   }
+ 
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()

@@ -3,47 +3,100 @@
 import { Icon } from "@iconify/react"
 import Image from "next/image"
 import Link from "next/link"
+import { Suspense, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { ArrowUpRight, ImageIcon, Lock, Mail, User } from "lucide-react"
+import { toast } from "react-toastify"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { toast } from "react-toastify"
-import { useRouter, useSearchParams } from "next/navigation"
 import { authClient } from "@/lib/auth-client"
+import { getSafeRedirectPath } from "@/lib/redirect"
 
-const SignUpPage = () => {
-    const searchParams = useSearchParams()
-  
-  const callbackURL = searchParams.get('callbackURL') || '/'
+const SignUpForm = () => {
+  const searchParams = useSearchParams()
   const router = useRouter()
-       const onSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        const formData = new FormData(e.currentTarget);
-        const data = Object.fromEntries(formData.entries())as {name:string,image:string, email:string,password:string}
-    const { data:resData, error } = await authClient.signUp.email({
-          ...data,
-           callbackURL: callbackURL,
-        })
-        if(resData){
-          const redirectParam = new URLSearchParams(window.location.search).get("redirect")
-          const signInUrl = redirectParam
-            ? `/sign-in?redirect=${encodeURIComponent(redirectParam)}`
-            : "/sign-in"
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-          toast.success(`Welcome, ${resData.user.name}`)
-          router.push(signInUrl)
-          router.refresh()
-        } else if (error) {
-          toast.error(error.message || "Could not create your account.")
-        }
-      };
-      const signInGoogle = async () => {
-  await authClient.signIn.social({
-    provider: "google",
-    callbackURL: callbackURL,
-  });
-};
+  const redirectTo =
+    searchParams.get("callbackURL") ?? searchParams.get("redirect")
+  const callbackURL = getSafeRedirectPath(redirectTo)
+  const signInHref = redirectTo
+    ? `/sign-in?redirect=${encodeURIComponent(callbackURL)}`
+    : "/sign-in"
+
+  const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    if (isSubmitting) {
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      const formData = new FormData(event.currentTarget)
+      const data = Object.fromEntries(formData.entries()) as {
+        name: string
+        image: string
+        email: string
+        password: string
+      }
+
+      const { data: resData, error } = await authClient.signUp.email({
+        ...data,
+        callbackURL,
+      })
+
+      if (error) {
+        throw new Error(
+          error.message || "Could not create your account. Please try again."
+        )
+      }
+
+      if (resData) {
+        toast.success(`Welcome, ${resData.user.name}`)
+        router.push(callbackURL)
+        router.refresh()
+      }
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Could not create your account. Please try again."
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const signInGoogle = async () => {
+    if (isSubmitting) {
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      const { error } = await authClient.signIn.social({
+        provider: "google",
+        callbackURL,
+      })
+
+      if (error) {
+        throw new Error(error.message || "Could not sign up with Google.")
+      }
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Could not sign up with Google. Please try again."
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   return (
     <main className="grid flex-1 lg:grid-cols-2">
@@ -160,22 +213,24 @@ const SignUpPage = () => {
                   id="password"
                   name="password"
                   type="password"
-                  placeholder="At least 6 characters"
+                  placeholder="At least 8 characters"
                   autoComplete="new-password"
+                  minLength={8}
                   required
                   className="h-11 rounded-md bg-card pl-10"
                 />
               </div>
               <p className="text-[11px] leading-4 text-muted-foreground">
-                Must include uppercase, lowercase and at least 6 characters.
+                Use at least 8 characters.
               </p>
             </div>
 
             <Button
               type="submit"
+              disabled={isSubmitting}
               className="h-11 w-full rounded-sm bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary/90"
             >
-              Create account
+              {isSubmitting ? "Creating account..." : "Create account"}
               <ArrowUpRight className="size-4" />
             </Button>
           </form>
@@ -189,22 +244,20 @@ const SignUpPage = () => {
           </div>
 
           <Button
-          onClick={signInGoogle}
+            onClick={signInGoogle}
             type="button"
             variant="outline"
+            disabled={isSubmitting}
             className="h-11 w-full rounded-md border-border bg-transparent text-sm font-medium hover:bg-muted/60"
           >
             <Icon icon="devicon:google" className="size-4" />
             Sign up with Google
-            <span className="hidden text-[9px] font-normal text-muted-foreground/70 sm:inline">
-              OAuth credentials required
-            </span>
           </Button>
 
           <p className="mt-8 text-center text-xs text-muted-foreground">
             Already have an account?{" "}
             <Link
-              href="/sign-in"
+              href={signInHref}
               className="font-semibold text-foreground underline-offset-4 hover:underline"
             >
               Log in
@@ -216,4 +269,18 @@ const SignUpPage = () => {
   )
 }
 
-export default SignUpPage
+function SignUpPageFallback() {
+  return (
+    <main className="grid flex-1 place-items-center bg-background px-4 py-12">
+      <p className="text-sm text-muted-foreground">Loading...</p>
+    </main>
+  )
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={<SignUpPageFallback />}>
+      <SignUpForm />
+    </Suspense>
+  )
+}

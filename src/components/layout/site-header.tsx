@@ -55,7 +55,7 @@ export async function SiteHeader() {
             </>
           )}
 
-          <MobileNav />
+          <MobileNav isSignedIn={Boolean(session?.user)} />
         </div>
       </div>
     </header>

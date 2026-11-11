@@ -7,28 +7,26 @@ export async function proxy(request: NextRequest) {
     headers: request.headers,
   })
 
-if (!session?.user) {
-  const signInURL = new URL('/sign-in', request.url)
+  if (!session?.user) {
+    const signInURL = new URL('/sign-in', request.url)
 
-  const redirectTo =
-    request.nextUrl.pathname + request.nextUrl.search
+    const redirectTo =
+      request.nextUrl.pathname + request.nextUrl.search
 
-  signInURL.searchParams.set('redirect', redirectTo)
+    signInURL.searchParams.set('redirect', redirectTo)
 
-  console.log('Redirect URL:', signInURL.toString())
+    return NextResponse.redirect(signInURL)
+  }
 
-  return NextResponse.redirect(signInURL)
-}
-
-return NextResponse.next()
+  return NextResponse.next()
 }
 export const config = {
   matcher: [
     '/add-studio',
     '/my-listings',
-    '/bookings',
     '/host-bookings',
     '/my-bookings',
     '/update-add/:id',
+    '/Dashboard',
   ],
 }

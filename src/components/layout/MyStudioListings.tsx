@@ -1,9 +1,12 @@
 'use client'
 import Image from "next/image"
 import Link from "next/link"
+import { useState } from "react"
 import { MapPin, Pencil, Plus, Trash2 } from "lucide-react"
+import { toast } from "react-toastify"
 
 import type { StudioData } from "@/lib/AllTypes"
+import { authClient } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
 
 type MyStudioListingsProps = {
@@ -16,28 +19,53 @@ export default  function MyStudioListings({
   addStudioHref = "/add-studio?new=1",
 }: MyStudioListingsProps) {
   const router = useRouter()
-const handleDelete = async (id: string) => {
-  
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/studio/${id}`,
-      {
-        method: "DELETE",
-      }
-    );
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
-    const deleteList = await res.json();
-
-    if (res.ok) {
-      console.log(deleteList);
-    } else {
-      console.error("Delete failed:", deleteList.message);
+  const handleDelete = async (id: string, title: string) => {
+    if (deletingId) {
+      return
     }
-  } catch (error) {
-    console.error("Something went wrong:", error);
+
+    if (!window.confirm(`Delete "${title}"? This cannot be undone.`)) {
+      return
+    }
+
+    setDeletingId(id)
+
+    try {
+      const { data: JwtToken, error } = await authClient.token()
+      const token = JwtToken?.token
+
+      if (error || !token) {
+        throw new Error("Your session expired. Please sign in again.")
+      }
+
+      const res = await fetch(`/api/studio/${id}`, {
+        method: "DELETE",
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      })
+      const result = (await res.json().catch(() => null)) as {
+        message?: string
+      } | null
+
+      if (!res.ok) {
+        throw new Error(result?.message || "Could not delete the studio.")
+      }
+
+      toast.success("Studio deleted.")
+      router.refresh()
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Could not delete the studio. Please try again."
+      )
+    } finally {
+      setDeletingId(null)
+    }
   }
-  router.refresh()
-};
 
   return (
     <main className="flex-1 bg-background text-foreground">
@@ -137,13 +165,14 @@ const handleDelete = async (id: string) => {
                     </Link>
 
                     <button
-                    onClick={()=>handleDelete(studio._id)}
+                      onClick={() => handleDelete(studio._id, title)}
                       type="button"
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-foreground/80 transition hover:text-destructive"
+                      disabled={deletingId === studio._id}
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-foreground/80 transition hover:text-destructive disabled:cursor-not-allowed disabled:opacity-50"
                       aria-label={`Delete ${title}`}
                     >
                       <Trash2 className="size-3.5" />
-                      Delete
+                      {deletingId === studio._id ? "Deleting..." : "Delete"}
                     </button>
                   </div>
                 </article>

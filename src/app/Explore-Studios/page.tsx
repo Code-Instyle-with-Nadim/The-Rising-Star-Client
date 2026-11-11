@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { getStudios } from "@/lib/studios";
-import AllStudio from "@/app/Details/page";
+import AllStudio from "@/components/studios/all-studios";
 
 export const metadata: Metadata = {
   title: "Explore studios",

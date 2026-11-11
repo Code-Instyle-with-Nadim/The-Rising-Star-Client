@@ -2,6 +2,8 @@ import type { ObjectId } from "mongodb"
 
 import type { BookingData, BookingStatus } from "@/lib/AllTypes"
 import { getDb } from "@/lib/mongodb"
+import { auth } from "./auth"
+import { headers } from "next/headers"
 
 const BACKEND_URL = (
   process.env.BACKEND_URL ??
@@ -113,7 +115,8 @@ export async function getBookingsByEmail(
     return documents
       .map(serializeBooking)
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-  } catch {
+  } catch (error) {
+    console.error("Could not load bookings:", error)
     return []
   }
 }
@@ -122,12 +125,25 @@ export async function getHostBookings(
   email: string
 ): Promise<BookingData[]> {
   try {
+    const { token } = await auth.api.getToken({
+      headers: await headers(),
+    })
     const response = await fetch(
       `${BACKEND_URL}/bookings/${encodeURIComponent(email.toLowerCase())}`,
-      { cache: "no-store" }
+      {
+        cache: "no-store",
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      }
     )
 
     if (!response.ok) {
+      console.error(
+        "Could not load host bookings:",
+        response.status,
+        await response.text()
+      )
       return []
     }
 
@@ -140,7 +156,8 @@ export async function getHostBookings(
     return data
       .map((booking) => serializeBooking(booking as BookingWithId))
       .filter((booking) => !isSelfBooking(booking))
-  } catch {
+  } catch (error) {
+    console.error("Could not load host bookings:", error)
     return []
   }
 }
@@ -148,10 +165,14 @@ export async function getHostBookings(
 export async function createBookingViaBackend(
   booking: Omit<BookingDocument, "_id">
 ): Promise<BookingData> {
+  const { token } = await auth.api.getToken({
+    headers: await headers(),
+  })
   const response = await fetch(`${BACKEND_URL}/bookings`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(booking),
     cache: "no-store",
@@ -174,12 +195,16 @@ export async function updateBookingViaBackend(
   id: string,
   updates: Partial<Omit<BookingDocument, "_id">>
 ): Promise<void> {
+  const { token } = await auth.api.getToken({
+    headers: await headers(),
+  })
   const response = await fetch(
     `${BACKEND_URL}/bookings/${encodeURIComponent(id)}`,
     {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
+        authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(updates),
       cache: "no-store",

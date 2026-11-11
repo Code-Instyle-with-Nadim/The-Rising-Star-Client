@@ -17,6 +17,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
+import { authClient } from "@/lib/auth-client"
 
 type CancelBookingButtonProps = {
   bookingId: string
@@ -38,8 +39,13 @@ export default function CancelBookingButton({
     setIsCancelling(true)
 
     try {
+      const { data: JwtToken } = await authClient.token()
+      const token = JwtToken?.token
       const response = await fetch(`/bookings/cancel/${bookingId}`, {
         method: "PATCH",
+        headers: {
+          authorization: `Bearer ${token}`
+        }
       })
       const result = (await response.json().catch(() => null)) as {
         message?: string

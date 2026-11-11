@@ -3,7 +3,11 @@ import { NextResponse } from "next/server"
 import { ObjectId } from "mongodb"
 
 import { auth } from "@/lib/auth"
-import { getStudio, updateStudioViaBackend } from "@/lib/studios"
+import {
+  deleteStudioViaBackend,
+  getStudio,
+  updateStudioViaBackend,
+} from "@/lib/studios"
 
 export async function PATCH(
   request: Request,
@@ -117,6 +121,63 @@ export async function PATCH(
   } catch {
     return NextResponse.json(
       { message: "Could not update the studio. Please try again." },
+      { status: 500 }
+    )
+  }
+}
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    })
+
+    const user = session?.user
+
+    if (!user) {
+      return NextResponse.json(
+        { message: "Please sign in to delete a studio." },
+        { status: 401 }
+      )
+    }
+
+    const { id } = await params
+
+    if (!ObjectId.isValid(id)) {
+      return NextResponse.json(
+        { message: "Invalid studio id." },
+        { status: 400 }
+      )
+    }
+
+    const studio = await getStudio(id)
+
+    if (!studio) {
+      return NextResponse.json(
+        { message: "Studio not found." },
+        { status: 404 }
+      )
+    }
+
+    const hostEmail =
+      typeof studio.hostEmail === "string" ? studio.hostEmail.toLowerCase() : ""
+
+    if (!hostEmail || hostEmail !== user.email.toLowerCase()) {
+      return NextResponse.json(
+        { message: "You can only delete your own studio." },
+        { status: 403 }
+      )
+    }
+
+    await deleteStudioViaBackend(id)
+
+    return NextResponse.json({ message: "Studio deleted successfully." })
+  } catch {
+    return NextResponse.json(
+      { message: "Could not delete the studio. Please try again." },
       { status: 500 }
     )
   }

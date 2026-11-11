@@ -1,61 +1,100 @@
 "use client"
 
 import { Icon } from "@iconify/react"
+import Image from "next/image"
 import Link from "next/link"
+import { Suspense, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { ArrowUpRight, Lock, Mail } from "lucide-react"
+import { toast } from "react-toastify"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { authClient } from "@/lib/auth-client"
-import { toast } from "react-toastify"
-import { useRouter, useSearchParams } from "next/navigation"
-import { ArrowUpRight, Lock, Mail } from "lucide-react"
-import Image from "next/image"
+import { getSafeRedirectPath } from "@/lib/redirect"
 
-const SignInPage = () => {
-const searchParams = useSearchParams()
+const SignInForm = () => {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-const redirectTo = searchParams.get('redirect')
+  const redirectTo = searchParams.get("redirect")
+  const callbackURL = getSafeRedirectPath(redirectTo)
+  const signUpHref = redirectTo
+    ? `/sign-up?callbackURL=${encodeURIComponent(callbackURL)}`
+    : "/sign-up"
 
-const callbackURL =
-  redirectTo?.startsWith('/') && !redirectTo.startsWith('//')
-    ? redirectTo
-    : '/Explore-Studios'
-    console.log('Callback URL:', callbackURL)
+  const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
 
+    if (isSubmitting) {
+      return
+    }
 
-    const router = useRouter()
-     const onSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
-  e.preventDefault()
+    setIsSubmitting(true)
 
-  const formData = new FormData(e.currentTarget)
-  const data = Object.fromEntries(formData.entries()) as {
-    email: string
-    password: string
+    try {
+      const formData = new FormData(event.currentTarget)
+      const data = Object.fromEntries(formData.entries()) as {
+        email: string
+        password: string
+      }
+
+      const { data: resData, error } = await authClient.signIn.email({
+        ...data,
+        callbackURL,
+      })
+
+      if (error) {
+        throw new Error(error.message || "Could not sign in. Please try again.")
+      }
+
+      if (resData) {
+        toast.success(`Welcome back, ${resData.user.name}`)
+        router.push(callbackURL)
+        router.refresh()
+      }
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Could not sign in. Please try again."
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
-  const { data: resData, error } = await authClient.signIn.email({
-    ...data,
-    callbackURL: callbackURL,
-  })
+  const signInGoogle = async () => {
+    if (isSubmitting) {
+      return
+    }
 
-  if (resData) {
-    toast.success(`Welcome back, ${resData.user.name}`)
-    router.push(callbackURL)
-    router.refresh()
-  } else if (error) {
-    toast.error(error.message || "Could not sign in. Please try again.")
+    setIsSubmitting(true)
+
+    try {
+      const { error } = await authClient.signIn.social({
+        provider: "google",
+        callbackURL,
+      })
+
+      if (error) {
+        throw new Error(error.message || "Could not sign in with Google.")
+      }
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Could not sign in with Google. Please try again."
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
   }
-}
-          const signInGoogle = async () => {
-  await authClient.signIn.social({
-    provider: "google",
-    callbackURL: callbackURL,
-  });
-};
 
   return (
-     <main className="grid flex-1 lg:grid-cols-2">
+    <main className="grid flex-1 lg:grid-cols-2">
       <div className="relative hidden min-h-[calc(100dvh-5rem)] overflow-hidden lg:block lg:min-h-[calc(100dvh-6rem)]">
         <Image
           src="/assets/hero-1.jpg"
@@ -85,7 +124,7 @@ const callbackURL =
         <div className="w-full max-w-[27rem]">
           <div className="flex items-center gap-2 text-[10px] font-semibold tracking-[0.22em] text-muted-foreground uppercase">
             <span className="size-1.5 rounded-full bg-highlight" />
-            Join the creative community
+            Welcome back
           </div>
 
           <h1 className="mt-6 font-serif text-5xl leading-[0.95] tracking-[-0.02em] sm:text-6xl">
@@ -95,7 +134,7 @@ const callbackURL =
           </h1>
 
           <p className="mt-5 text-sm leading-6 text-muted-foreground">
-            Create an account and find your next creative space.
+            Sign in to manage your bookings and studio listings.
           </p>
 
           <form
@@ -134,22 +173,20 @@ const callbackURL =
                   id="password"
                   name="password"
                   type="password"
-                  placeholder="At least 6 characters"
-                  autoComplete="new-password"
+                  placeholder="Your password"
+                  autoComplete="current-password"
                   required
                   className="h-11 rounded-md bg-card pl-10"
                 />
               </div>
-              <p className="text-[11px] leading-4 text-muted-foreground">
-                Must include uppercase, lowercase and at least 6 characters.
-              </p>
             </div>
 
             <Button
               type="submit"
+              disabled={isSubmitting}
               className="h-11 w-full rounded-sm bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary/90"
             >
-              Sign In
+              {isSubmitting ? "Signing in..." : "Sign In"}
               <ArrowUpRight className="size-4" />
             </Button>
           </form>
@@ -163,22 +200,20 @@ const callbackURL =
           </div>
 
           <Button
-          onClick={signInGoogle}
+            onClick={signInGoogle}
             type="button"
             variant="outline"
+            disabled={isSubmitting}
             className="h-11 w-full rounded-md border-border bg-transparent text-sm font-medium hover:bg-muted/60"
           >
             <Icon icon="devicon:google" className="size-4" />
-            Sign up with Google
-            <span className="hidden text-[9px] font-normal text-muted-foreground/70 sm:inline">
-              OAuth credentials required
-            </span>
+            Sign in with Google
           </Button>
 
           <p className="mt-8 text-center text-xs text-muted-foreground">
             Do not have any account?{" "}
             <Link
-              href="/sign-up"
+              href={signUpHref}
               className="font-semibold text-foreground underline-offset-4 hover:underline"
             >
               Sign Up
@@ -190,4 +225,18 @@ const callbackURL =
   )
 }
 
-export default SignInPage
+function SignInPageFallback() {
+  return (
+    <main className="grid flex-1 place-items-center bg-background px-4 py-12">
+      <p className="text-sm text-muted-foreground">Loading...</p>
+    </main>
+  )
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={<SignInPageFallback />}>
+      <SignInForm />
+    </Suspense>
+  )
+}

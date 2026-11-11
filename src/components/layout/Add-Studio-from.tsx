@@ -23,14 +23,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import type { StudioData, User } from "@/lib/AllTypes"
+import { authClient } from "@/lib/auth-client"
+import { STUDIO_CATEGORIES } from "@/lib/studio-constants"
 
-const categories = [
-  "Photo Studio",
-  "Film Stage",
-  "Podcast Lounge",
-  "Music Suite",
-  "Workshop",
-]
+const BACKEND_URL = (
+  process.env.NEXT_PUBLIC_BACKEND_URL ??
+  "https://the-rising-star-server.vercel.app"
+).replace(/\/+$/, "")
 
 const amenities = [
   "Natural light",
@@ -66,6 +65,13 @@ const AddStudioFrom = ({
     setIsSubmitting(true)
 
     try {
+      const { data: JwtToken, error: tokenError } = await authClient.token()
+      const token = JwtToken?.token
+
+      if (tokenError || !token) {
+        throw new Error("Your session expired. Please sign in again.")
+      }
+
       const formData = new FormData(e.currentTarget)
       const imageUrl = String(formData.get("imageUrl") ?? "")
       const galleryImages = String(formData.get("images") ?? "")
@@ -93,6 +99,7 @@ const AddStudioFrom = ({
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
+            authorization: `Bearer ${token}`
           },
           body: JSON.stringify(data),
         })
@@ -110,16 +117,11 @@ const AddStudioFrom = ({
         return
       }
 
-      const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL
-
-      if (!API_URL) {
-        throw new Error("Backend URL is not configured.")
-      }
-
-      const response = await fetch(`${API_URL}/studio`, {
+      const response = await fetch(`${BACKEND_URL}/studio`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
           ...data,
@@ -235,7 +237,7 @@ const AddStudioFrom = ({
                     <option value="" disabled>
                       Select category
                     </option>
-                    {categories.map((category) => (
+                    {STUDIO_CATEGORIES.map((category) => (
                       <option key={category} value={category}>
                         {category}
                       </option>

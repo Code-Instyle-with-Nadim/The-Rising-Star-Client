@@ -1,11 +1,12 @@
 import type { Metadata } from "next"
-  import { ToastContainer, } from 'react-toastify';
+import { ToastContainer } from "react-toastify"
 import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google"
 
 import { SiteHeader } from "@/components/layout/site-header"
 import { ThemeProvider } from "@/components/theme-provider"
 
 import "./globals.css"
+import Footer from "@/components/Footer"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       suppressHydrationWarning
+      data-scroll-behavior="smooth"
       className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} h-full scroll-smooth antialiased`}
     >
       <body className="min-h-full flex flex-col">
@@ -50,6 +52,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <SiteHeader />
           {children}
           <ToastContainer />
+          <Footer/>
         </ThemeProvider>
       </body>
     </html>

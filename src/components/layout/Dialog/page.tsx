@@ -9,6 +9,7 @@ import {
   LogOut,
   Plus,
 } from "lucide-react"
+import { toast } from "react-toastify"
 
 import { authClient } from "@/lib/auth-client"
 
@@ -45,11 +46,21 @@ export default function DialogPage({ user }: UserDropdownProps) {
   const router = useRouter()
 
   const handleSignOut = async () => {
-    const { error } = await authClient.signOut()
+    try {
+      const { error } = await authClient.signOut()
 
-    if (!error) {
+      if (error) {
+        throw new Error(error.message || "Could not sign out.")
+      }
+
       router.push("/sign-in")
       router.refresh()
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Could not sign out. Please try again."
+      )
     }
   }
 

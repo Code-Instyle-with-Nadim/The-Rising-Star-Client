@@ -8,6 +8,7 @@ import BookingDialog from "@/components/details/booking-dialog"
 import { ReviewForm } from "@/components/details/review-form"
 import { StudioGallery } from "@/components/details/studio-gallery"
 import { auth } from "@/lib/auth"
+import { getStudioReviews } from "@/lib/reviews"
 import { getStudio } from "@/lib/studios"
 
 export async function generateMetadata({
@@ -40,6 +41,7 @@ export default async function DetailsPage({
     headers: await headers(),
   })
   const user = session?.user
+  const reviews = await getStudioReviews(studio._id)
 
   const rating = Number(studio.rating ?? 0)
   const reviewCount = Number(studio.reviewCount ?? 0)
@@ -172,7 +174,42 @@ export default async function DetailsPage({
                 </span>
               </h2>
 
-              <ReviewForm studioTitle={studio.title} />
+              <ReviewForm
+                studioId={studio._id}
+                studioTitle={studio.title}
+                isSignedIn={Boolean(user)}
+              />
+
+              {reviews.length > 0 ? (
+                <ul className="mt-5 space-y-3">
+                  {reviews.map((review) => (
+                    <li
+                      key={review._id}
+                      className="rounded-xl border border-border/70 bg-card p-4"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <p className="text-xs font-semibold">
+                          {review.userName}
+                        </p>
+                        <span className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
+                          <Star
+                            aria-hidden
+                            className="size-3 fill-gold text-gold"
+                          />
+                          {review.rating.toFixed(1)}
+                        </span>
+                      </div>
+                      <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                        {review.review}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-5 text-xs text-muted-foreground">
+                  No reviews yet. Be the first to share your experience.
+                </p>
+              )}
             </section>
           </div>
 

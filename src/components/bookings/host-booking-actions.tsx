@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import type { BookingStatus } from "@/lib/AllTypes"
+import { authClient } from "@/lib/auth-client"
 
 type HostBookingActionsProps = {
   bookingId: string
@@ -45,10 +46,13 @@ export default function HostBookingActions({
     setIsUpdating(true)
 
     try {
+      const { data: JwtToken } = await authClient.token()
+      const token = JwtToken?.token
       const response = await fetch(`/bookings/${bookingId}/status`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
+          authorization: `Bearer ${token}`
         },
         body: JSON.stringify({ status: nextStatus }),
       })

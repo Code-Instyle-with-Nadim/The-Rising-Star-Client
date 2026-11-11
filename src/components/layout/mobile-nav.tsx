@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Menu } from "lucide-react"
+import { LayoutDashboard, Menu } from "lucide-react"
 
 import { BrandLogo } from "@/components/layout/brand-logo"
 import { PrimaryNav } from "@/components/layout/primary-nav"
@@ -18,7 +18,13 @@ import {
 } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 
-export function MobileNav({ className }: { className?: string }) {
+export function MobileNav({
+  className,
+  isSignedIn = false,
+}: {
+  className?: string
+  isSignedIn?: boolean
+}) {
   const [open, setOpen] = useState(false)
   const close = () => setOpen(false)
 
@@ -60,21 +66,35 @@ export function MobileNav({ className }: { className?: string }) {
           </div>
 
           <div className="mt-auto flex flex-col gap-2 border-t pt-4">
-            <Button
-              variant="outline"
-              nativeButton={false}
-              render={<Link href="/login" onClick={close} />}
-              className="h-10 w-full rounded-full"
-            >
-              Log in
-            </Button>
-            <Button
-              nativeButton={false}
-              render={<Link href="/get-started" onClick={close} />}
-              className="h-10 w-full rounded-full bg-brand text-brand-foreground shadow-sm hover:bg-brand/90"
-            >
-              Get Started
-            </Button>
+            {isSignedIn ? (
+              <Button
+                variant="outline"
+                nativeButton={false}
+                render={<Link href="/Dashboard" onClick={close} />}
+                className="h-10 w-full rounded-full"
+              >
+                <LayoutDashboard aria-hidden className="size-4" />
+                Dashboard
+              </Button>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  nativeButton={false}
+                  render={<Link href="/sign-in" onClick={close} />}
+                  className="h-10 w-full rounded-full"
+                >
+                  Log in
+                </Button>
+                <Button
+                  nativeButton={false}
+                  render={<Link href="/sign-up" onClick={close} />}
+                  className="h-10 w-full rounded-full bg-brand text-brand-foreground shadow-sm hover:bg-brand/90"
+                >
+                  Get Started
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </SheetContent>

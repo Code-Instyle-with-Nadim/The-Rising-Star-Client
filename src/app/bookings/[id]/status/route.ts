@@ -98,7 +98,7 @@ export async function PATCH(
       )
     }
 
-    if (booking.userEmail.toLowerCase() === hostEmail) {
+    if (String(booking.userEmail ?? "").toLowerCase() === hostEmail) {
       return NextResponse.json(
         { message: "You cannot manage a booking for your own stay." },
         { status: 403 }
@@ -126,10 +126,12 @@ export async function PATCH(
     return NextResponse.json(
       serializeBooking({ ...booking, status, updatedAt })
     )
-  } catch {
-    return NextResponse.json(
-      { message: "Could not update the booking. Please try again." },
-      { status: 500 }
-    )
-  }
+ } catch (error) {
+  console.error("Booking PATCH Error:", error)
+
+  return NextResponse.json(
+    { message: "Could not update the booking. Please try again." },
+    { status: 500 }
+  )
+}
 }

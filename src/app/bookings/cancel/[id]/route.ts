@@ -46,7 +46,10 @@ export async function PATCH(
       )
     }
 
-    if (booking.userEmail.toLowerCase() !== user.email.toLowerCase()) {
+    if (
+      String(booking.userEmail ?? "").toLowerCase() !==
+      user.email.toLowerCase()
+    ) {
       return NextResponse.json(
         { message: "You can only cancel your own bookings." },
         { status: 403 }

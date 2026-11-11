@@ -1,13 +1,40 @@
-import Image from "next/image";
+import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowUpRight, MapPin, Star } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
 import type { StudioData } from "@/lib/AllTypes";
+import { StudioCard } from "@/components/studios/studio-card";
+
+
+const BACKEND_URL = (
+  process.env.NEXT_PUBLIC_BACKEND_URL ??
+  "https://the-rising-star-server.vercel.app"
+).replace(/\/+$/, "")
+
+export const metadata: Metadata = {
+  title: "Featured studios",
+  description:
+    "Discover inspiring creative spaces for your next project at The Rising Star.",
+}
 
 const FeatursSection = async () => {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/explore-studio`);
+  let fearurs: StudioData[] = []
 
-  const fearurs: StudioData[] = await res.json();
+  try {
+    const res = await fetch(`${BACKEND_URL}/explore-studio`, {
+      cache: "no-store",
+    })
+
+    if (res.ok) {
+      const data: unknown = await res.json()
+
+      if (Array.isArray(data)) {
+        fearurs = data as StudioData[]
+      }
+    }
+  } catch {
+    fearurs = []
+  }
 
   return (
     <section className="relative overflow-hidden bg-background py-20 text-foreground lg:py-28">
@@ -37,79 +64,22 @@ const FeatursSection = async () => {
           </p>
         </div>
 
-        <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:mt-16 lg:grid-cols-3">
-          {fearurs.map((feature) => (
-            <article
-              key={feature.title}
-              className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-highlight/40 hover:shadow-xl"
-            >
-              <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
-                <Image
-                  src={feature.imageUrl}
-                  alt={feature.title}
-                  fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                  className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
-                />
-
-                <div
-                  aria-hidden
-                  className="absolute inset-0 bg-linear-to-t from-black/55 via-black/0 to-black/5"
-                />
-
-                <span className="absolute top-3 left-3 rounded-full bg-brand px-3 py-1 text-[10px] font-bold tracking-[0.12em] text-brand-foreground uppercase shadow-sm">
-                  {feature.category}
-                </span>
-
-                <span className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-background/90 px-2.5 py-1 text-xs font-semibold text-foreground shadow-sm backdrop-blur-sm">
-                  <Star
-                    aria-hidden
-                    className="size-3.5 fill-gold text-gold"
-                  />
-                  {feature.rating}
-                </span>
-              </div>
-
-              <div className="flex flex-1 flex-col p-5">
-                <h3 className="text-xl font-semibold tracking-tight">
-                  {feature.title}
-                </h3>
-
-                <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <MapPin
-                    aria-hidden
-                    className="size-3.5 shrink-0 text-highlight"
-                  />
-                  {feature.location}
-                </p>
-
-                <div className="mt-4 flex items-end justify-between gap-4 border-t border-border pt-4">
-                  <p className="font-serif text-2xl leading-none text-gold">
-                    ${feature.hourlyRate}
-                    <span className="ml-1 font-sans text-[11px] font-normal text-muted-foreground">
-                      / hr
-                    </span>
-                  </p>
-
-                  <p className="text-[11px] text-muted-foreground">
-                    {feature.reviewCount} Reviews
-                  </p>
-                </div>
-
-                <Link
-                  href={`/Details/${feature._id}`}
-                  className="group/link mt-5 inline-flex h-11 items-center justify-between rounded-lg border border-border px-4 text-sm font-semibold text-foreground transition-colors hover:border-brand hover:bg-brand hover:text-brand-foreground"
-                >
-                  View Details
-                  <ArrowUpRight
-                    aria-hidden
-                    className="size-4 transition-transform group-hover/link:-translate-y-0.5 group-hover/link:translate-x-0.5"
-                  />
-                </Link>
-              </div>
-            </article>
-          ))}
-        </div>
+        {fearurs.length > 0 ? (
+          <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:mt-16 lg:grid-cols-3">
+            {fearurs.map((feature, index) => (
+              <StudioCard
+                key={feature._id}
+                studio={feature}
+                priority={index === 0}
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="mx-auto mt-12 max-w-md text-center text-sm leading-6 text-muted-foreground">
+            Featured studios are taking a quick break. Explore the full
+            directory below.
+          </p>
+        )}
 
         <div className="mt-12 text-center">
           <Link

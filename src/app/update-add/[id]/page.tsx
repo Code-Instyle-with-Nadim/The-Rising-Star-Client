@@ -31,10 +31,10 @@ export default async function UpdateStudioPage({
     notFound()
   }
 
-  if (
-    studio.hostEmail &&
-    studio.hostEmail.toLowerCase() !== user.email.toLowerCase()
-  ) {
+  const hostEmail =
+    typeof studio.hostEmail === "string" ? studio.hostEmail.toLowerCase() : ""
+
+  if (!hostEmail || hostEmail !== user.email.toLowerCase()) {
     notFound()
   }
 

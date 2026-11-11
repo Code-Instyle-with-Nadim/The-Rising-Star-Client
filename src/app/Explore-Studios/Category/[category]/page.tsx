@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 
 import {
   ALL_CATEGORIES_LABEL,
-  getStudios,
   STUDIO_CATEGORIES,
-} from "@/lib/studios";
-import AllStudio from "@/app/Details/page";
+} from "@/lib/studio-constants";
+import { getStudios } from "@/lib/studios";
+import AllStudio from "@/components/studios/all-studios";
 
 type CategoryPageProps = {
   params: Promise<{ category: string }>;

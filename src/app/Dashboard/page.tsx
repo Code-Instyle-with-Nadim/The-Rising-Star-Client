@@ -134,10 +134,13 @@ export default async function DashboardPage() {
       : pendingCount > 0
         ? `${pendingCount} pending ${pendingCount === 1 ? "request" : "requests"}`
         : "All caught up"
-  const memberSince = new Date(user.createdAt).toLocaleDateString("en-US", {
-    month: "short",
-    year: "numeric",
-  })
+  const createdAt = new Date(user.createdAt)
+  const memberSince = Number.isNaN(createdAt.getTime())
+    ? "recently"
+    : createdAt.toLocaleDateString("en-US", {
+        month: "short",
+        year: "numeric",
+      })
 
   const quickActions: QuickAction[] = [
     {
