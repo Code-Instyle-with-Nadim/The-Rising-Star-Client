@@ -11,6 +11,7 @@ import {
   ChevronDown,
   ImageIcon,
   LayoutGrid,
+  LoaderCircle,
   MapPin,
   ShieldCheck,
   Upload,
@@ -53,7 +54,100 @@ const AddStudioFrom = ({
 }) => {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isUploadingCover, setIsUploadingCover] = useState(false)
+  const [isUploadingGallery, setIsUploadingGallery] = useState(false)
+  const [coverImageUrl, setCoverImageUrl] = useState(studio?.imageUrl ?? "")
+  const [galleryImageUrls, setGalleryImageUrls] = useState(
+    Array.isArray(studio?.images) ? studio.images.join("\n") : ""
+  )
   const isEditing = Boolean(studio)
+  const isUploading = isUploadingCover || isUploadingGallery
+
+  const uploadImageToImgBB = async (file: File) => {
+    const formData = new FormData()
+    formData.append("file", file)
+
+    const response = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+    })
+    const result = (await response.json().catch(() => null)) as {
+      message?: string
+      url?: string
+    } | null
+
+    if (!response.ok || !result?.url) {
+      throw new Error(result?.message || "Could not upload the image.")
+    }
+
+    return result.url
+  }
+
+  const onCoverImageChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0]
+    event.target.value = ""
+
+    if (!file) {
+      return
+    }
+
+    setIsUploadingCover(true)
+
+    try {
+      const url = await uploadImageToImgBB(file)
+      setCoverImageUrl(url)
+      toast.success("Cover image uploaded to ImgBB.")
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Could not upload the cover image."
+      )
+    } finally {
+      setIsUploadingCover(false)
+    }
+  }
+
+  const onGalleryImagesChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = Array.from(event.target.files ?? [])
+    event.target.value = ""
+
+    if (files.length === 0) {
+      return
+    }
+
+    setIsUploadingGallery(true)
+    let uploadedCount = 0
+
+    try {
+      for (const file of files) {
+        const url = await uploadImageToImgBB(file)
+        uploadedCount += 1
+        setGalleryImageUrls((previous) => {
+          const current = previous.trim()
+          return current ? `${current}\n${url}` : url
+        })
+      }
+
+      toast.success(
+        `${uploadedCount} gallery image${
+          uploadedCount === 1 ? "" : "s"
+        } uploaded to ImgBB.`
+      )
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Could not upload the gallery images."
+      )
+    } finally {
+      setIsUploadingGallery(false)
+    }
+  }
 
   const onSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -341,7 +435,8 @@ const AddStudioFrom = ({
                   id="imageUrl"
                   name="imageUrl"
                   type="url"
-                  defaultValue={studio?.imageUrl}
+                  value={coverImageUrl}
+                  onChange={(event) => setCoverImageUrl(event.target.value)}
                   placeholder="Upload an image or paste an image URL"
                   required
                   className="h-11 rounded-md bg-card pl-10"
@@ -349,15 +444,41 @@ const AddStudioFrom = ({
               </div>
 
               <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                <a
-                  href="https://imgbb.com/"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 text-[11px] font-medium text-highlight underline-offset-4 hover:underline"
+                <label
+                  htmlFor="coverImageUpload"
+                  className={
+                    isUploadingCover
+                      ? "inline-flex cursor-wait items-center gap-1.5 text-[11px] font-medium text-muted-foreground"
+                      : "inline-flex cursor-pointer items-center gap-1.5 text-[11px] font-medium text-highlight underline-offset-4 hover:underline"
+                  }
                 >
-                  <Upload className="size-3" />
-                  Or upload directly to ImgBB
-                </a>
+                  {isUploadingCover ? (
+                    <LoaderCircle className="size-3 animate-spin" />
+                  ) : (
+                    <Upload className="size-3" />
+                  )}
+                  {isUploadingCover
+                    ? "Uploading cover image..."
+                    : "Upload cover image to ImgBB"}
+                </label>
+                <input
+                  id="coverImageUpload"
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  onChange={onCoverImageChange}
+                  disabled={isUploadingCover}
+                />
+                {coverImageUrl ? (
+                  <a
+                    href={coverImageUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[10px] font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                  >
+                    Preview image
+                  </a>
+                ) : null}
               </div>
             </div>
 
@@ -373,14 +494,40 @@ const AddStudioFrom = ({
               <Textarea
                 id="images"
                 name="images"
-                defaultValue={
-                  Array.isArray(studio?.images)
-                    ? studio.images.join("\n")
-                    : undefined
-                }
+                value={galleryImageUrls}
+                onChange={(event) => setGalleryImageUrls(event.target.value)}
                 placeholder={"https://...\nhttps://..."}
                 className="min-h-24 rounded-md bg-card font-mono text-xs leading-6"
               />
+
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                <label
+                  htmlFor="galleryImagesUpload"
+                  className={
+                    isUploadingGallery
+                      ? "inline-flex cursor-wait items-center gap-1.5 text-[11px] font-medium text-muted-foreground"
+                      : "inline-flex cursor-pointer items-center gap-1.5 text-[11px] font-medium text-highlight underline-offset-4 hover:underline"
+                  }
+                >
+                  {isUploadingGallery ? (
+                    <LoaderCircle className="size-3 animate-spin" />
+                  ) : (
+                    <Upload className="size-3" />
+                  )}
+                  {isUploadingGallery
+                    ? "Uploading gallery images..."
+                    : "Upload gallery images to ImgBB"}
+                </label>
+                <input
+                  id="galleryImagesUpload"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="sr-only"
+                  onChange={onGalleryImagesChange}
+                  disabled={isUploadingGallery}
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -431,7 +578,7 @@ const AddStudioFrom = ({
 
             <Button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || isUploading}
               className="h-11 w-full rounded-sm bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary/90"
             >
               {isSubmitting
