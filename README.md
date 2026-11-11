@@ -243,8 +243,8 @@ The following credentials can be used to test the application.
 
 **Nadimul Islam**
 
-- GitHub: [Add Your GitHub Profile]
-- LinkedIn: [Add Your LinkedIn Profile]
+- GitHub:(https://github.com/Code-Instyle-with-Nadim)
+- LinkedIn:(https://www.linkedin.com/in/md-nadimul-866a6937b/)
 - Portfolio: [Add Your Portfolio URL]
 
 ---
