@@ -62,6 +62,10 @@ const AddStudioFrom = ({
       return
     }
 
+    // React clears event.currentTarget after the synchronous handler returns,
+    // so capture the form before awaiting the auth token.
+    const form = e.currentTarget
+
     setIsSubmitting(true)
 
     try {
@@ -72,7 +76,7 @@ const AddStudioFrom = ({
         throw new Error("Your session expired. Please sign in again.")
       }
 
-      const formData = new FormData(e.currentTarget)
+      const formData = new FormData(form)
       const imageUrl = String(formData.get("imageUrl") ?? "")
       const galleryImages = String(formData.get("images") ?? "")
         .split(/\r?\n/)

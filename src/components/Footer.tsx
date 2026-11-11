@@ -1,8 +1,9 @@
-import Link from 'next/link';
-import React from 'react';
-import { NewsletterForm } from './home/newsletter-form';
-import { BrandLogo } from './layout/brand-logo';
-import { getCategoryHref } from "@/lib/studio-constants"
+import Link from "next/link";
+import React from "react";
+import { NewsletterForm } from "./home/newsletter-form";
+import { BrandLogo } from "./layout/brand-logo";
+import { getCategoryHref } from "@/lib/studio-constants";
+import { Icon } from "@iconify/react";
 
 const footerColumns = [
   {
@@ -23,18 +24,30 @@ const footerColumns = [
       { label: "Our story", href: "/#about" },
     ],
   },
-]
+];
 
 const socials = [
-  { label: "IG", name: "Instagram", href: "#footer" },
-  { label: "FB", name: "Facebook", href: "#footer" },
-  { label: "X", name: "X", href: "#footer" },
-]
+  {
+    name: "Instagram",
+    Icon: <i className="fa-brands fa-instagram"></i>,
+    href: "#footer",
+  },
+  {
+    name: "Facebook",
+    Icon: <i className="fa-brands fa-facebook"></i>,
+    href: "#footer",
+  },
+  {
+    name: "X",
+    Icon: <i className="fa-brands fa-x-twitter"></i>,
+    href: "#footer",
+  },
+];
 
 const Footer = () => {
   return (
     <div>
-       <footer id="footer" className="bg-footer text-footer-foreground">
+      <footer id="footer" className="bg-footer text-footer-foreground">
         <div className="mx-auto w-full max-w-7xl px-6 py-16 lg:px-12 lg:py-20">
           <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-[1.3fr_0.7fr_0.8fr_1.1fr]">
             <div>
@@ -46,16 +59,64 @@ const Footer = () => {
               </p>
 
               <div className="mt-6 flex items-center gap-2">
-                {socials.map((social) => (
-                  <Link
-                    key={social.name}
-                    href={social.href}
-                    aria-label={social.name}
-                    className="grid size-9 place-items-center rounded-full border border-footer-foreground/20 text-[10px] font-semibold transition hover:border-brand hover:bg-brand hover:text-brand-foreground"
+                <div className="socials flex gap-3">
+                  <a
+                    href="https://www.linkedin.com/in/md-nadimul-866a6937b/"
+                    aria-label="Instagram"
                   >
-                    {social.label}
-                  </Link>
-                ))}
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="lucide lucide-linkedin"
+                    >
+                      <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                      <rect width="4" height="12" x="2" y="9"></rect>
+                      <circle cx="4" cy="4" r="2"></circle>
+                    </svg>
+                  </a>
+                  <a
+                    href="https://www.facebook.com/md.nadimul.2693"
+                    aria-label="Facebook"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="lucide lucide-facebook"
+                    >
+                      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+                    </svg>
+                  </a>
+                  <a
+                    className="text-2xl"
+                    href="https://x.com/MNadimul81543"
+                    aria-label="X"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      className="lucide lucide-x-twitter"
+                    >
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>
+                    </svg>
+                  </a>
+                </div>
               </div>
             </div>
 
@@ -94,11 +155,17 @@ const Footer = () => {
           <div className="mt-14 flex flex-col gap-4 border-t border-footer-foreground/15 pt-6 text-[11px] text-footer-foreground/50 sm:flex-row sm:items-center sm:justify-between">
             <p>© 2026 The Rising Star. Made for the makers.</p>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-              <Link href="#" className="transition hover:text-footer-foreground">
+              <Link
+                href="#"
+                className="transition hover:text-footer-foreground"
+              >
                 Terms
               </Link>
               <span aria-hidden>·</span>
-              <Link href="#" className="transition hover:text-footer-foreground">
+              <Link
+                href="#"
+                className="transition hover:text-footer-foreground"
+              >
                 Privacy
               </Link>
               <span aria-hidden>·</span>

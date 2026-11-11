@@ -56,8 +56,10 @@ const SignUpForm = () => {
       }
 
       if (resData) {
-        toast.success(`Welcome, ${resData.user.name}`)
-        router.push(callbackURL)
+        toast.success(
+          `Welcome, ${resData.user.name}. Please sign in to continue.`
+        )
+        router.push(signInHref)
         router.refresh()
       }
     } catch (error) {

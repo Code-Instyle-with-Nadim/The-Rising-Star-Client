@@ -180,6 +180,12 @@ const SignInForm = () => {
                 />
               </div>
             </div>
+            <Link
+              href={signUpHref}
+              className="font-semibold text-foreground underline-offset-4 hover:underline  mb-2"
+            >
+              Forgot Password ?
+            </Link>
 
             <Button
               type="submit"
